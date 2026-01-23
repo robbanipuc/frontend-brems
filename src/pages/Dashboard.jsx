@@ -1,235 +1,163 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import api from '../utils/api';
-import { Modal, Button, Form, Badge, Spinner } from 'react-bootstrap';
-// Safe Import for Charts
-import { BarChart, Bar, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
+import { Modal, Button, Form, Badge, InputGroup } from 'react-bootstrap';
+import { FaSearch, FaUserCircle, FaCamera } from 'react-icons/fa';
 
 const Dashboard = () => {
-    // --- STATE ---
     const [employees, setEmployees] = useState([]);
-    const [offices, setOffices] = useState([]);
-    const [designations, setDesignations] = useState([]); 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState(''); // Search State
 
     // Modals
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [showTransferModal, setShowTransferModal] = useState(false);
-    const [showPromoteModal, setShowPromoteModal] = useState(false);
-    const [showHistoryModal, setShowHistoryModal] = useState(false);
-    const [showLoginModal, setShowLoginModal] = useState(false);
-
-    // Data
-    const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+    const [showProfileModal, setShowProfileModal] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
-    
-    // Forms
-    const [addFormData, setAddFormData] = useState({ first_name: '', last_name: '', nid_number: '', designation: '', current_salary: '' });
-    const [transferData, setTransferData] = useState({ target_office_id: '', transfer_date: '', order_number: '' });
-    const [promoteData, setPromoteData] = useState({ new_designation: '', new_salary: '', promotion_date: '' });
-    const [loginEmail, setLoginEmail] = useState('');
 
-    // --- FETCH ---
-    const fetchAllData = async () => {
+    // Fetch Data with Search
+    const fetchEmployees = async (searchTerm = '') => {
+        setLoading(true);
         try {
-            const [empRes, offRes, desRes] = await Promise.all([
-                api.get('/employees'),
-                api.get('/offices'),
-                api.get('/designations').catch(() => ({ data: [] }))
-            ]);
-            setEmployees(Array.isArray(empRes.data) ? empRes.data : []);
-            setOffices(Array.isArray(offRes.data) ? offRes.data : []);
-            setDesignations(Array.isArray(desRes.data) ? desRes.data : []);
-        } catch (error) { console.error("Error loading data"); } finally { setLoading(false); }
+            const res = await api.get(`/employees?search=${searchTerm}`);
+            setEmployees(res.data);
+        } catch (e) { console.error(e); }
+        finally { setLoading(false); }
     };
 
-    useEffect(() => { fetchAllData(); }, []);
+    useEffect(() => { fetchEmployees(); }, []);
 
-    // --- HANDLERS ---
-    const handleAddSubmit = async (e) => {
-        e.preventDefault();
-        try { await api.post('/employees', addFormData); setShowAddModal(false); fetchAllData(); alert("✅ Added!"); } catch (e) { alert("Failed"); }
+    // Search Handler (Debounce could be added here)
+    const handleSearch = (e) => {
+        setSearch(e.target.value);
+        fetchEmployees(e.target.value);
     };
 
-    const handleVerify = async (id) => {
-        if (!window.confirm("Verify?")) return;
-        try { await api.put(`/employees/${id}/verify`); fetchAllData(); } catch (e) { alert("Failed"); }
+    // View Profile
+    const handleViewProfile = async (id) => {
+        const res = await api.get(`/employees/${id}`);
+        setSelectedEmployee(res.data);
+        setShowProfileModal(true);
     };
 
-    const handleTransferClick = (id) => { setSelectedEmployeeId(id); setShowTransferModal(true); };
-    const handleTransferSubmit = async (e) => {
-        e.preventDefault();
-        try { await api.post(`/employees/${selectedEmployeeId}/transfer`, transferData); setShowTransferModal(false); fetchAllData(); alert("✅ Transferred!"); } catch (e) { alert("Failed"); }
-    };
-
-    const handlePromoteClick = (id) => { setSelectedEmployeeId(id); setShowPromoteModal(true); };
-    const handlePromoteSubmit = async (e) => {
-        e.preventDefault();
-        try { await api.post(`/employees/${selectedEmployeeId}/promote`, promoteData); setShowPromoteModal(false); fetchAllData(); alert("✅ Promoted!"); } catch (e) { alert("Failed"); }
-    };
-
-    const handleViewHistory = async (id) => {
-        try { const res = await api.get(`/employees/${id}`); setSelectedEmployee(res.data); setShowHistoryModal(true); } catch (e) {}
-    };
-
-    const handleLoginClick = (id) => { setSelectedEmployeeId(id); setShowLoginModal(true); setLoginEmail(''); };
-    const handleLoginSubmit = async (e) => {
-        e.preventDefault();
-        try { const res = await api.post(`/employees/${selectedEmployeeId}/create-login`, { email: loginEmail }); alert(`Login Created!\nPass: 123456`); setShowLoginModal(false); } catch (e) { alert("Failed"); }
-    };
+    // Helper to show Image
+    const getPhotoUrl = (path) => path ? `http://127.0.0.1:8000/storage/${path}` : null;
 
     return (
         <Layout>
-            {loading && <div style={{position:'fixed', top:0, left:0, width:'100%', height:'100%', background:'rgba(255,255,255,0.8)', zIndex:999, display:'flex', alignItems:'center', justifyContent:'center'}}>Loading...</div>}
-
             <div className="container-fluid">
-                {/* CHARTS ROW */}
-                <div className="row mb-4">
-                    <div className="col-md-3">
-                        <div className="card bg-primary text-white p-3 shadow-sm border-0">
-                            <h3>{employees.length}</h3>
-                            <small>Total Employees</small>
-                        </div>
+                
+                {/* 1. HEADER & SEARCH */}
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 className="fw-bold text-dark mb-0">Operational Staff</h3>
+                        <small className="text-muted">Manage personnel, search records, and verify profiles.</small>
                     </div>
-                    <div className="col-md-3">
-                        <div className="card bg-success text-white p-3 shadow-sm border-0">
-                            <h3>{employees.filter(e => e.is_verified).length}</h3>
-                            <small>Verified Staff</small>
-                        </div>
-                    </div>
-                    <div className="col-md-6">
-                        <div className="card p-3 shadow-sm border-0" style={{height: '120px'}}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={[
-                                    {name: 'Total', count: employees.length},
-                                    {name: 'Verified', count: employees.filter(e => e.is_verified).length}
-                                ]}>
-                                    <Bar dataKey="count" fill="#006747" barSize={50} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                    {/* Add Button logic from previous code here if needed */}
+                </div>
+
+                <div className="card shadow-sm border-0 mb-4">
+                    <div className="card-body p-2">
+                        <InputGroup>
+                            <InputGroup.Text className="bg-white border-0"><FaSearch className="text-muted"/></InputGroup.Text>
+                            <Form.Control 
+                                placeholder="Search by Name, NID, or Designation..." 
+                                className="border-0 shadow-none"
+                                value={search}
+                                onChange={handleSearch}
+                            />
+                        </InputGroup>
                     </div>
                 </div>
 
-                {/* EMPLOYEES TABLE */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h4>Operational Staff</h4>
-                    <Button onClick={() => setShowAddModal(true)}>+ New Recruit</Button>
-                </div>
-
+                {/* 2. EMPLOYEE LIST */}
                 <div className="card shadow-sm border-0">
                     <table className="table table-hover align-middle mb-0">
                         <thead className="bg-light">
                             <tr>
-                                <th className="ps-3">Name</th>
+                                <th className="ps-4">Employee</th>
                                 <th>Designation</th>
-                                <th>Salary</th>
+                                <th>Contact</th>
                                 <th>Status</th>
-                                <th className="text-end pe-3">Actions</th>
+                                <th className="text-end pe-4">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {employees.map(emp => (
-                                <tr key={emp.id}>
-                                    <td className="ps-3">
-                                        <div className="fw-bold">{emp.first_name} {emp.last_name}</div>
-                                        <small className="text-muted">{emp.nid_number}</small>
-                                    </td>
-                                    <td>{emp.designation}</td>
-                                    <td>{Number(emp.current_salary).toLocaleString()} BDT</td>
-                                    <td>{emp.is_verified ? <Badge bg="success">Verified</Badge> : <Badge bg="warning" text="dark">Pending</Badge>}</td>
-                                    <td className="text-end pe-3">
-                                        <div className="btn-group">
-                                            {!emp.is_verified && <Button size="sm" variant="outline-success" onClick={() => handleVerify(emp.id)}>Verify</Button>}
-                                            <Button size="sm" variant="outline-secondary" onClick={() => handleTransferClick(emp.id)}>Transfer</Button>
-                                            <Button size="sm" variant="outline-secondary" onClick={() => handlePromoteClick(emp.id)}>Promote</Button>
-                                            <Button size="sm" variant="info" className="text-white" onClick={() => handleViewHistory(emp.id)}>Info</Button>
-                                            <Button size="sm" variant="dark" onClick={() => handleLoginClick(emp.id)}>🔑</Button>
+                                <tr key={emp.id} style={{cursor:'pointer'}} onClick={() => handleViewProfile(emp.id)}>
+                                    <td className="ps-4">
+                                        <div className="d-flex align-items-center">
+                                            {emp.profile_picture ? (
+                                                <img src={getPhotoUrl(emp.profile_picture)} className="rounded-circle me-3" width="40" height="40" style={{objectFit:'cover'}} />
+                                            ) : (
+                                                <div className="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center" style={{width:40, height:40}}><FaUserCircle size={24} className="text-secondary"/></div>
+                                            )}
+                                            <div>
+                                                <div className="fw-bold text-dark">{emp.first_name} {emp.last_name}</div>
+                                                <small className="text-muted">NID: {emp.nid_number}</small>
+                                            </div>
                                         </div>
+                                    </td>
+                                    <td><span className="badge bg-light text-dark border">{emp.designation}</span></td>
+                                    <td><small>{emp.email || 'N/A'}</small></td>
+                                    <td>{emp.is_verified ? <Badge bg="success">Verified</Badge> : <Badge bg="warning" text="dark">Pending</Badge>}</td>
+                                    <td className="text-end pe-4">
+                                        <Button variant="light" size="sm" className="border">View Profile</Button>
                                     </td>
                                 </tr>
                             ))}
+                            {employees.length === 0 && <tr><td colSpan="5" className="text-center p-5 text-muted">No employees found matching "{search}"</td></tr>}
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {/* --- MODALS (Add, Transfer, Promote, History, Login) --- */}
-            {/* 1. Add */}
-            <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
-                <Modal.Header closeButton><Modal.Title>Add Employee</Modal.Title></Modal.Header>
+            {/* 3. PROFILE DETAILS MODAL */}
+            <Modal show={showProfileModal} onHide={() => setShowProfileModal(false)} size="lg">
+                <Modal.Header closeButton><Modal.Title>Employee Profile</Modal.Title></Modal.Header>
                 <Modal.Body>
-                    <Form onSubmit={handleAddSubmit}>
-                        <Form.Control className="mb-2" placeholder="First Name" required onChange={e => setAddFormData({...addFormData, first_name: e.target.value})}/>
-                        <Form.Control className="mb-2" placeholder="Last Name" required onChange={e => setAddFormData({...addFormData, last_name: e.target.value})}/>
-                        <Form.Control className="mb-2" placeholder="NID" required onChange={e => setAddFormData({...addFormData, nid_number: e.target.value})}/>
-                        <Form.Control className="mb-2" placeholder="Designation" required onChange={e => setAddFormData({...addFormData, designation: e.target.value})}/>
-                        <Form.Control className="mb-2" type="number" placeholder="Salary" required onChange={e => setAddFormData({...addFormData, current_salary: e.target.value})}/>
-                        <Button type="submit" className="w-100 mt-2">Save</Button>
-                    </Form>
+                    {selectedEmployee && (
+                        <div className="row">
+                            <div className="col-md-4 text-center border-end">
+                                <div className="mb-3 position-relative d-inline-block">
+                                    {selectedEmployee.profile_picture ? (
+                                        <img src={getPhotoUrl(selectedEmployee.profile_picture)} className="rounded-circle shadow-sm" width="120" height="120" style={{objectFit:'cover'}} />
+                                    ) : (
+                                        <FaUserCircle size={100} className="text-muted" />
+                                    )}
+                                </div>
+                                <h5>{selectedEmployee.first_name} {selectedEmployee.last_name}</h5>
+                                <p className="text-primary fw-bold">{selectedEmployee.designation}</p>
+                                <Badge bg="dark">{selectedEmployee.status}</Badge>
+                            </div>
+                            <div className="col-md-8 ps-4">
+                                <h6 className="text-muted text-uppercase small fw-bold mb-3">Personal Information</h6>
+                                <div className="row mb-2">
+                                    <div className="col-4 text-muted">NID Number</div>
+                                    <div className="col-8 fw-bold">{selectedEmployee.nid_number}</div>
+                                </div>
+                                <div className="row mb-2">
+                                    <div className="col-4 text-muted">Phone/Email</div>
+                                    <div className="col-8">{selectedEmployee.phone || '-'} / {selectedEmployee.email || '-'}</div>
+                                </div>
+                                <div className="row mb-2">
+                                    <div className="col-4 text-muted">Current Salary</div>
+                                    <div className="col-8">{selectedEmployee.current_salary} BDT</div>
+                                </div>
+                                
+                                <hr />
+                                <h6 className="text-muted text-uppercase small fw-bold mb-3">Service Record</h6>
+                                <p>Currently posted at: <strong>{selectedEmployee.office?.name}</strong></p>
+                                {/* Add Timeline logic here if needed */}
+                            </div>
+                        </div>
+                    )}
                 </Modal.Body>
-            </Modal>
-
-            {/* 2. Transfer */}
-            <Modal show={showTransferModal} onHide={() => setShowTransferModal(false)}>
-                <Modal.Header closeButton><Modal.Title>Transfer</Modal.Title></Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleTransferSubmit}>
-                        <Form.Select className="mb-2" required onChange={e => setTransferData({...transferData, target_office_id: e.target.value})}>
-                            <option value="">Select Office</option>
-                            {offices.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                        </Form.Select>
-                        <Form.Control type="date" required onChange={e => setTransferData({...transferData, transfer_date: e.target.value})}/>
-                        <Button type="submit" variant="warning" className="w-100 mt-2">Confirm</Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
-
-            {/* 3. Promote */}
-            <Modal show={showPromoteModal} onHide={() => setShowPromoteModal(false)}>
-                <Modal.Header closeButton><Modal.Title>Promote</Modal.Title></Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handlePromoteSubmit}>
-                         {/* Dynamic Dropdown for designations */}
-                        {designations.length > 0 ? (
-                            <Form.Select className="mb-2" required onChange={e => {
-                                const d = designations.find(x => x.id == e.target.value);
-                                setPromoteData({...promoteData, new_designation: d.title, new_salary: d.basic_salary});
-                            }}>
-                                <option value="">Select New Post</option>
-                                {designations.map(d => <option key={d.id} value={d.id}>{d.title} (Grade {d.grade})</option>)}
-                            </Form.Select>
-                        ) : (
-                            <Form.Control className="mb-2" placeholder="Title" onChange={e => setPromoteData({...promoteData, new_designation: e.target.value})}/>
-                        )}
-                        <Form.Control type="number" value={promoteData.new_salary} onChange={e => setPromoteData({...promoteData, new_salary: e.target.value})} placeholder="New Salary"/>
-                        <Form.Control type="date" className="mt-2" onChange={e => setPromoteData({...promoteData, promotion_date: e.target.value})}/>
-                        <Button type="submit" variant="success" className="w-100 mt-2">Approve</Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
-
-            {/* 4. Login */}
-            <Modal show={showLoginModal} onHide={() => setShowLoginModal(false)}>
-                <Modal.Header closeButton><Modal.Title>Grant Access</Modal.Title></Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleLoginSubmit}>
-                        <Form.Control type="email" placeholder="Gmail Address" required onChange={e => setLoginEmail(e.target.value)}/>
-                        <p className="text-muted small mt-2">Default pass: 123456</p>
-                        <Button type="submit" variant="dark" className="w-100">Create</Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
-
-            {/* 5. History */}
-            <Modal show={showHistoryModal} onHide={() => setShowHistoryModal(false)}>
-                <Modal.Header closeButton><Modal.Title>Timeline</Modal.Title></Modal.Header>
-                <Modal.Body>
-                    {selectedEmployee?.promotions?.map(p => <div key={p.id} className="mb-2 border-start border-success ps-2">Promoted to {p.new_designation} ({p.promotion_date})</div>)}
-                    {selectedEmployee?.transfers?.map(t => <div key={t.id} className="mb-2 border-start border-warning ps-2">Transferred to {t.to_office?.name} ({t.transfer_date})</div>)}
-                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowProfileModal(false)}>Close</Button>
+                    <Button variant="primary">Edit (Admin)</Button>
+                </Modal.Footer>
             </Modal>
         </Layout>
     );
 };
+
 export default Dashboard;

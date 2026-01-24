@@ -1,162 +1,155 @@
 import React, { useEffect, useState } from 'react';
-import Layout from '../components/Layout';
 import api from '../utils/api';
-import { Modal, Button, Form, Badge, InputGroup } from 'react-bootstrap';
-import { FaSearch, FaUserCircle, FaCamera } from 'react-icons/fa';
+import { Card, CardBody, CardHeader } from '../components/ui/Card';
+import { FaUsers, FaBuilding, FaClipboardList, FaUserTie, FaArrowUp } from 'react-icons/fa';
 
 const Dashboard = () => {
-    const [employees, setEmployees] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [search, setSearch] = useState(''); // Search State
+    const [stats, setStats] = useState({ 
+        employees: 0, 
+        offices: 0, 
+        requests: 0, 
+        designations: 0 
+    });
+    const [loading, setLoading] = useState(true);
 
-    // Modals
-    const [showProfileModal, setShowProfileModal] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    useEffect(() => {
+        const loadStats = async () => {
+            try {
+                // Fetch all data in parallel for speed
+                const [emp, off, req, des] = await Promise.all([
+                    api.get('/employees'),
+                    api.get('/offices'),
+                    api.get('/profile-requests'),
+                    api.get('/designations')
+                ]);
 
-    // Fetch Data with Search
-    const fetchEmployees = async (searchTerm = '') => {
-        setLoading(true);
-        try {
-            const res = await api.get(`/employees?search=${searchTerm}`);
-            setEmployees(res.data);
-        } catch (e) { console.error(e); }
-        finally { setLoading(false); }
-    };
+                setStats({
+                    employees: emp.data.length,
+                    offices: off.data.length,
+                    requests: req.data.filter(r => r.status === 'pending').length,
+                    designations: des.data.length
+                });
+            } catch (e) { 
+                console.error("Dashboard data fetch failed", e); 
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadStats();
+    }, []);
 
-    useEffect(() => { fetchEmployees(); }, []);
-
-    // Search Handler (Debounce could be added here)
-    const handleSearch = (e) => {
-        setSearch(e.target.value);
-        fetchEmployees(e.target.value);
-    };
-
-    // View Profile
-    const handleViewProfile = async (id) => {
-        const res = await api.get(`/employees/${id}`);
-        setSelectedEmployee(res.data);
-        setShowProfileModal(true);
-    };
-
-    // Helper to show Image
-    const getPhotoUrl = (path) => path ? `http://127.0.0.1:8000/storage/${path}` : null;
+    // Helper Component for the Top Cards
+    const StatCard = ({ title, count, icon: Icon, colorClass, subText }) => (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition hover:shadow-md">
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-lg ${colorClass} text-white`}>
+                    <Icon size={20} />
+                </div>
+                {/* Optional Percentage Badge */}
+                <span className="flex items-center text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                    <FaArrowUp className="mr-1" size={10} /> Live
+                </span>
+            </div>
+            <div>
+                <p className="text-gray-500 text-sm font-medium mb-1">{title}</p>
+                <h3 className="text-3xl font-bold text-gray-800">{loading ? '...' : count}</h3>
+                <p className="text-xs text-gray-400 mt-2">{subText}</p>
+            </div>
+        </div>
+    );
 
     return (
-        <Layout>
-            <div className="container-fluid">
-                
-                {/* 1. HEADER & SEARCH */}
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h3 className="fw-bold text-dark mb-0">Operational Staff</h3>
-                        <small className="text-muted">Manage personnel, search records, and verify profiles.</small>
-                    </div>
-                    {/* Add Button logic from previous code here if needed */}
-                </div>
-
-                <div className="card shadow-sm border-0 mb-4">
-                    <div className="card-body p-2">
-                        <InputGroup>
-                            <InputGroup.Text className="bg-white border-0"><FaSearch className="text-muted"/></InputGroup.Text>
-                            <Form.Control 
-                                placeholder="Search by Name, NID, or Designation..." 
-                                className="border-0 shadow-none"
-                                value={search}
-                                onChange={handleSearch}
-                            />
-                        </InputGroup>
-                    </div>
-                </div>
-
-                {/* 2. EMPLOYEE LIST */}
-                <div className="card shadow-sm border-0">
-                    <table className="table table-hover align-middle mb-0">
-                        <thead className="bg-light">
-                            <tr>
-                                <th className="ps-4">Employee</th>
-                                <th>Designation</th>
-                                <th>Contact</th>
-                                <th>Status</th>
-                                <th className="text-end pe-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {employees.map(emp => (
-                                <tr key={emp.id} style={{cursor:'pointer'}} onClick={() => handleViewProfile(emp.id)}>
-                                    <td className="ps-4">
-                                        <div className="d-flex align-items-center">
-                                            {emp.profile_picture ? (
-                                                <img src={getPhotoUrl(emp.profile_picture)} className="rounded-circle me-3" width="40" height="40" style={{objectFit:'cover'}} />
-                                            ) : (
-                                                <div className="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center" style={{width:40, height:40}}><FaUserCircle size={24} className="text-secondary"/></div>
-                                            )}
-                                            <div>
-                                                <div className="fw-bold text-dark">{emp.first_name} {emp.last_name}</div>
-                                                <small className="text-muted">NID: {emp.nid_number}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span className="badge bg-light text-dark border">{emp.designation}</span></td>
-                                    <td><small>{emp.email || 'N/A'}</small></td>
-                                    <td>{emp.is_verified ? <Badge bg="success">Verified</Badge> : <Badge bg="warning" text="dark">Pending</Badge>}</td>
-                                    <td className="text-end pe-4">
-                                        <Button variant="light" size="sm" className="border">View Profile</Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            {employees.length === 0 && <tr><td colSpan="5" className="text-center p-5 text-muted">No employees found matching "{search}"</td></tr>}
-                        </tbody>
-                    </table>
-                </div>
+        <div className="space-y-8 animate-fade-in">
+            {/* 1. Welcome Section */}
+            <div>
+                <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+                <p className="text-gray-500 text-sm mt-1">Overview of Bangladesh Railway HR System</p>
             </div>
 
-            {/* 3. PROFILE DETAILS MODAL */}
-            <Modal show={showProfileModal} onHide={() => setShowProfileModal(false)} size="lg">
-                <Modal.Header closeButton><Modal.Title>Employee Profile</Modal.Title></Modal.Header>
-                <Modal.Body>
-                    {selectedEmployee && (
-                        <div className="row">
-                            <div className="col-md-4 text-center border-end">
-                                <div className="mb-3 position-relative d-inline-block">
-                                    {selectedEmployee.profile_picture ? (
-                                        <img src={getPhotoUrl(selectedEmployee.profile_picture)} className="rounded-circle shadow-sm" width="120" height="120" style={{objectFit:'cover'}} />
-                                    ) : (
-                                        <FaUserCircle size={100} className="text-muted" />
-                                    )}
+            {/* 2. Key Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard 
+                    title="Total Employees" 
+                    count={stats.employees} 
+                    icon={FaUsers} 
+                    colorClass="bg-blue-600"
+                    subText="Active across all stations"
+                />
+                <StatCard 
+                    title="Offices & Stations" 
+                    count={stats.offices} 
+                    icon={FaBuilding} 
+                    colorClass="bg-indigo-600"
+                    subText="Network locations"
+                />
+                <StatCard 
+                    title="Pending Requests" 
+                    count={stats.requests} 
+                    icon={FaClipboardList} 
+                    colorClass="bg-railway-red"
+                    subText="Requiring approval"
+                />
+                <StatCard 
+                    title="Designations" 
+                    count={stats.designations} 
+                    icon={FaUserTie} 
+                    colorClass="bg-railway-green"
+                    subText="Job roles configured"
+                />
+            </div>
+
+            {/* 3. Main Content Area */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Left: Quick Actions / Notices */}
+                <Card className="lg:col-span-2">
+                    <CardHeader title="System Notices" subtitle="Important updates for administrators" />
+                    <CardBody>
+                        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-r-md">
+                            <div className="flex">
+                                <div className="ml-3">
+                                    <p className="text-sm text-blue-700 font-bold">Annual Audit Period</p>
+                                    <p className="text-xs text-blue-600 mt-1">
+                                        Please ensure all employee transfer records and designations are updated before the 30th of this month for the annual government audit.
+                                    </p>
                                 </div>
-                                <h5>{selectedEmployee.first_name} {selectedEmployee.last_name}</h5>
-                                <p className="text-primary fw-bold">{selectedEmployee.designation}</p>
-                                <Badge bg="dark">{selectedEmployee.status}</Badge>
-                            </div>
-                            <div className="col-md-8 ps-4">
-                                <h6 className="text-muted text-uppercase small fw-bold mb-3">Personal Information</h6>
-                                <div className="row mb-2">
-                                    <div className="col-4 text-muted">NID Number</div>
-                                    <div className="col-8 fw-bold">{selectedEmployee.nid_number}</div>
-                                </div>
-                                <div className="row mb-2">
-                                    <div className="col-4 text-muted">Phone/Email</div>
-                                    <div className="col-8">{selectedEmployee.phone || '-'} / {selectedEmployee.email || '-'}</div>
-                                </div>
-                                <div className="row mb-2">
-                                    <div className="col-4 text-muted">Current Salary</div>
-                                    <div className="col-8">{selectedEmployee.current_salary} BDT</div>
-                                </div>
-                                
-                                <hr />
-                                <h6 className="text-muted text-uppercase small fw-bold mb-3">Service Record</h6>
-                                <p>Currently posted at: <strong>{selectedEmployee.office?.name}</strong></p>
-                                {/* Add Timeline logic here if needed */}
                             </div>
                         </div>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowProfileModal(false)}>Close</Button>
-                    <Button variant="primary">Edit (Admin)</Button>
-                </Modal.Footer>
-            </Modal>
-        </Layout>
+                        
+                        <div className="border border-gray-100 rounded-lg p-8 text-center">
+                            <div className="text-gray-400 text-sm">No other critical alerts at this time.</div>
+                            <button className="mt-4 text-railway-green text-sm font-semibold hover:underline">
+                                View System Logs
+                            </button>
+                        </div>
+                    </CardBody>
+                </Card>
+
+                {/* Right: Server Status */}
+                <Card className="h-fit">
+                    <CardHeader title="System Status" />
+                    <CardBody className="space-y-5">
+                        <div className="flex justify-between items-center pb-4 border-b border-gray-50">
+                            <span className="text-sm text-gray-600 font-medium">Database</span>
+                            <span className="text-green-700 font-bold bg-green-100 px-2.5 py-0.5 rounded-full text-xs border border-green-200">Connected</span>
+                        </div>
+                        <div className="flex justify-between items-center pb-4 border-b border-gray-50">
+                            <span className="text-sm text-gray-600 font-medium">API Latency</span>
+                            <span className="text-gray-800 font-mono text-xs">24ms</span>
+                        </div>
+                        <div className="flex justify-between items-center pb-4 border-b border-gray-50">
+                            <span className="text-sm text-gray-600 font-medium">Storage</span>
+                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                                <div className="bg-railway-green h-2 rounded-full" style={{ width: '45%' }}></div>
+                            </div>
+                        </div>
+                        <div className="pt-2">
+                            <p className="text-xs text-gray-400 text-center">Last synced: Just now</p>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+        </div>
     );
 };
 

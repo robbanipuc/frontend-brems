@@ -1,144 +1,158 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import Preloader from '../components/Preloader';
+import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
-import { Form, Button, Modal } from 'react-bootstrap';
-import { FaFolder, FaFolderOpen, FaBuilding, FaPlus, FaEdit } from 'react-icons/fa';
+import { Card } from '../components/ui/Card';
+import { Modal } from '../components/ui/Modal';
+import { FaPlus, FaEdit, FaSearch } from 'react-icons/fa';
 
 const ManageOffices = () => {
     const [offices, setOffices] = useState([]);
-    const [showModal, setShowModal] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [filtered, setFiltered] = useState([]);
+    const [isModalOpen, setModalOpen] = useState(false);
     
-    // Form State
-    const [editingId, setEditingId] = useState(null); // Track if we are editing
+    // Filters
+    const [search, setSearch] = useState('');
+    const [parentFilter, setParentFilter] = useState('');
+    
+    // Edit State
+    const [isEdit, setIsEdit] = useState(false);
+    const [editId, setEditId] = useState(null);
     const [form, setForm] = useState({ name: '', code: '', location: '', parent_id: '' });
 
-    const fetchOffices = async () => {
-        try { const res = await api.get('/offices'); setOffices(res.data); } catch(e){}
-    };
     useEffect(() => { fetchOffices(); }, []);
 
-    // Handle Open Modal for Create
-    const handleAddClick = () => {
-        setEditingId(null);
-        setForm({ name: '', code: '', location: '', parent_id: '' });
-        setShowModal(true);
+    const fetchOffices = async () => {
+        try {
+            const res = await api.get('/offices');
+            setOffices(res.data);
+            setFiltered(res.data);
+        } catch (e) { console.error("API Error"); }
     };
 
-    // Handle Open Modal for Edit
-    const handleEditClick = (office, e) => {
-        e.stopPropagation(); // Prevent toggling the folder open/close
-        setEditingId(office.id);
-        setForm({ 
-            name: office.name, 
-            code: office.code, 
-            location: office.location, 
-            parent_id: office.parent_id || '' 
-        });
-        setShowModal(true);
+    useEffect(() => {
+        let res = offices;
+        if(search) res = res.filter(o => o.name.toLowerCase().includes(search.toLowerCase()) || o.code.toLowerCase().includes(search.toLowerCase()));
+        if(parentFilter) res = res.filter(o => o.parent_id === parseInt(parentFilter));
+        setFiltered(res);
+    }, [search, parentFilter, offices]);
+
+    const openEdit = (office) => {
+        setForm({ name: office.name, code: office.code, location: office.location, parent_id: office.parent_id || '' });
+        setIsEdit(true);
+        setEditId(office.id);
+        setModalOpen(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        try { 
-            if (editingId) {
-                // UPDATE (PUT)
-                await api.put(`/offices/${editingId}`, form);
-                alert("✅ Office Updated!");
-            } else {
-                // CREATE (POST)
-                await api.post('/offices', form);
-                alert("✅ Office Created!");
-            }
-            setShowModal(false); 
-            fetchOffices(); 
-        } 
-        catch (error) { 
-            alert("Failed: " + (error.response?.data?.message || "Check inputs")); 
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // --- RECURSIVE TREE COMPONENT ---
-    const TreeNode = ({ node }) => {
-        const [isOpen, setIsOpen] = useState(true);
-        const children = offices.filter(o => o.parent_id === node.id);
-        const hasChildren = children.length > 0;
-
-        return (
-            <div style={{ marginLeft: '20px' }} className="mt-2">
-                <div 
-                    className="d-flex align-items-center justify-content-between p-2 rounded hover-bg border bg-white" 
-                    onClick={() => setIsOpen(!isOpen)}
-                    style={{ cursor: 'pointer' }}
-                >
-                    <div className="d-flex align-items-center">
-                        <span className="me-2 text-warning" style={{fontSize: '1.2rem'}}>
-                            {hasChildren ? (isOpen ? <FaFolderOpen /> : <FaFolder />) : <FaBuilding className="text-success"/>}
-                        </span>
-                        <div>
-                            <span className="fw-bold text-dark">{node.name}</span>
-                            <span className="text-muted ms-2 small">({node.code})</span>
-                        </div>
-                    </div>
-                    
-                    {/* EDIT BUTTON */}
-                    <Button variant="light" size="sm" className="border-0 text-primary" onClick={(e) => handleEditClick(node, e)}>
-                        <FaEdit /> Edit
-                    </Button>
-                </div>
-                
-                {isOpen && hasChildren && (
-                    <div style={{ borderLeft: '1px dashed #ccc', marginLeft: '10px' }}>
-                        {children.map(child => <TreeNode key={child.id} node={child} />)}
-                    </div>
-                )}
-            </div>
-        );
+        try {
+            if(isEdit) await api.put(`/offices/${editId}`, form);
+            else await api.post('/offices', form);
+            
+            setModalOpen(false);
+            fetchOffices(); // Refresh list
+            setForm({ name: '', code: '', location: '', parent_id: '' });
+        } catch (e) { alert("Operation Failed"); }
     };
 
     return (
-        <Layout>
-            <Preloader show={loading} />
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h3 className="text-dark fw-bold">🏢 Organization Hierarchy</h3>
-                <Button onClick={handleAddClick} variant="success"><FaPlus className="me-2"/> Add Office</Button>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-gray-800">Offices & Stations</h1>
+                <button onClick={() => { setIsEdit(false); setForm({ name: '', code: '', location: '', parent_id: '' }); setModalOpen(true); }} className="bg-railway-green text-white px-4 py-2 rounded-lg flex gap-2 font-bold shadow-sm hover:bg-railway-dark">
+                    <FaPlus /> Add Office
+                </button>
             </div>
 
-            <div className="bg-light p-4 rounded shadow-sm border" style={{minHeight: '400px'}}>
-                {offices.filter(o => !o.parent_id).map(root => (
-                    <TreeNode key={root.id} node={root} />
-                ))}
-                {offices.length === 0 && <p className="text-muted">No offices found.</p>}
-            </div>
+            <Card>
+                <div className="p-4 bg-gray-50 border-b flex flex-wrap gap-4 items-center">
+                    {/* Search */}
+                    <div className="relative w-64">
+                        <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                        <input 
+                            className="pl-10 w-full" 
+                            placeholder="Search Station..." 
+                            value={search} 
+                            onChange={e => setSearch(e.target.value)} 
+                        />
+                    </div>
+                    
+                    {/* Parent Filter - FIXED: Shows ALL offices now */}
+                    <select 
+                        className="w-64 bg-white" 
+                        value={parentFilter} 
+                        onChange={e => setParentFilter(e.target.value)}
+                    >
+                        {/* This is the first option */}
+                        <option value="">All Zones/Parents</option> 
+                        
+                        {/* Then map the rest */}
+                        {offices.map(o => (
+                            <option key={o.id} value={o.id}>{o.name}</option>
+                        ))}
+                    </select>
+                </div>
 
-            {/* MODAL (Reused for Add & Edit) */}
-            <Modal show={showModal} onHide={() => setShowModal(false)}>
-                <Modal.Header closeButton className="bg-success text-white">
-                    <Modal.Title>{editingId ? 'Edit Office' : 'Add New Office'}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Control className="mb-2" placeholder="Office Name" required value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-                        <Form.Control className="mb-2" placeholder="Office Code (Unique)" required value={form.code} onChange={e => setForm({...form, code: e.target.value})} />
-                        <Form.Control className="mb-2" placeholder="Location" required value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
-                        <Form.Label>Parent Office (Optional)</Form.Label>
-                        <Form.Select value={form.parent_id} onChange={e => setForm({...form, parent_id: e.target.value})}>
-                            <option value="">-- No Parent (Top Level) --</option>
-                            {offices.map(o => (
-                                o.id !== editingId && <option key={o.id} value={o.id}>{o.name}</option>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-gray-600">
+                        <thead className="bg-gray-100 text-xs uppercase font-bold text-gray-500">
+                            <tr>
+                                <th className="px-6 py-3">Code</th>
+                                <th className="px-6 py-3">Name</th>
+                                <th className="px-6 py-3">Location</th>
+                                <th className="px-6 py-3">Parent Office</th>
+                                <th className="px-6 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                            {filtered.map(o => (
+                                <tr key={o.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-3 font-mono font-bold text-gray-500">{o.code}</td>
+                                    <td className="px-6 py-3 font-bold text-gray-800">{o.name}</td>
+                                    <td className="px-6 py-3">{o.location}</td>
+                                    <td className="px-6 py-3 text-gray-500">{o.parent ? o.parent.name : '-'}</td>
+                                    <td className="px-6 py-3 text-right">
+                                        <button onClick={() => openEdit(o)} className="text-blue-600 hover:bg-blue-50 p-2 rounded transition">
+                                            <FaEdit />
+                                        </button>
+                                    </td>
+                                </tr>
                             ))}
-                        </Form.Select>
-                        <Button type="submit" className="w-100 mt-3" variant="success">
-                            {editingId ? 'Update Office' : 'Save Office'}
-                        </Button>
-                    </Form>
-                </Modal.Body>
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+
+            <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)} title={isEdit ? "Edit Office" : "Add Office"}>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Office Name</label>
+                        <input className="w-full" name="name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                             <label className="block text-sm font-bold text-gray-700 mb-1">Code</label>
+                             <input className="w-full" name="code" value={form.code} onChange={e => setForm({...form, code: e.target.value})} required />
+                        </div>
+                        <div>
+                             <label className="block text-sm font-bold text-gray-700 mb-1">Location</label>
+                             <input className="w-full" name="location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} required />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Parent Office</label>
+                        <select className="w-full bg-white" name="parent_id" value={form.parent_id} onChange={e => setForm({...form, parent_id: e.target.value})}>
+                            <option value="">None (Top Level)</option>
+                            {/* Prevent selecting itself as parent to avoid infinite loop */}
+                            {offices.filter(o => o.id !== editId).map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                        </select>
+                    </div>
+                    <button type="submit" className="w-full bg-railway-green text-white py-2 rounded-lg font-bold hover:bg-railway-dark transition">
+                        {isEdit ? 'Update Office' : 'Create Office'}
+                    </button>
+                </form>
             </Modal>
-        </Layout>
+        </div>
     );
 };
+
 export default ManageOffices;

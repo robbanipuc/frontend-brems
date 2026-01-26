@@ -18,8 +18,22 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial asset loading
-    setTimeout(() => setLoading(false), 1500);
+    // ---------------------------------------------------------
+    // 1. THE WAKE-UP CALL
+    // This fires immediately when the app opens.
+    // It pings your backend root to trigger the "Cold Start".
+    // ---------------------------------------------------------
+    fetch('https://brems-backend.onrender.com/')
+      .then(() => console.log('Backend is awake or waking up...'))
+      .catch((err) => console.log('Backend wake-up signal sent.'));
+
+    // ---------------------------------------------------------
+    // 2. YOUR EXISTING PRELOADER LOGIC
+    // ---------------------------------------------------------
+    const timer = setTimeout(() => setLoading(false), 1500);
+
+    // Cleanup timer if component unmounts
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) return <Preloader />;
@@ -42,7 +56,7 @@ function App() {
           <Route path="/inbox" element={<AdminInbox />} />
           
           {/* Employee Management */}
-          <Route path="/employees" element={<EmployeeDirectory />} /> {/* <--- 2. ADD THIS ROUTE */}
+          <Route path="/employees" element={<EmployeeDirectory />} />
           <Route path="/employees/:id" element={<EmployeeDetails />} />
           
           {/* Catch-all (Redirects unknown pages to Login) */}

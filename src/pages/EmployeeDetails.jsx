@@ -213,8 +213,9 @@ const EmployeeDetails = () => {
                             <h2 className="text-xl font-bold text-gray-900">{emp.first_name} {emp.last_name}</h2>
                             
                             {/* Designation Title (Safely accessed via Relation) */}
-                            <p className="text-[#006A4E] font-bold text-sm mt-1 uppercase tracking-wide">
-                                {emp.designation?.title || 'Unknown'}
+                            <p className="text-[#006A4E] font-bold      text-sm mt-1 uppercase tracking-wide">
+                                {/* 1. Try getting title from relation. 2. If missing, find it in the list by ID. 3. Fallback to Unknown */}
+                                {emp.designation?.title || designations.find(d => d.id == emp.designation_id)?.title || 'Unknown'}
                             </p>
                             
                             {/* Show Login Email if exists */}

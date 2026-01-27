@@ -28,7 +28,7 @@ const EmployeeDetails = () => {
     const [modalType, setModalType] = useState(null);
     const [transferForm, setTransferForm] = useState({ target_office_id: '', transfer_date: '', order_number: '' });
     // FIXED: Changed new_designation to designation_id to match backend
-    const [promoForm, setPromoForm] = useState({ designation_id: '', new_salary: '', promotion_date: '' });
+    const [promoForm, setPromoForm] = useState({ new_designation_id: '', new_salary: '', promotion_date: '' });
     
     // --- NEW ACCESS FORM STATE ---
     const [accessForm, setAccessForm] = useState({ 
@@ -537,7 +537,7 @@ const EmployeeDetails = () => {
                                 const d = designations.find(x => x.id == e.target.value); 
                                 setPromoForm({
                                     ...promoForm, 
-                                    designation_id: d.id, // STORE ID
+                                    new_designation_id: d.id, // STORE ID
                                     new_salary: d.basic_salary
                                 })
                             }} 

@@ -1,22 +1,50 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        railway: {
+        // Bangladesh Railway Primary - Deep Green
+        primary: {
           50: '#f0fdf4',
           100: '#dcfce7',
-          600: '#006A4E', // BR Primary Green
-          700: '#047857', // Hover state
-          800: '#065f46', // Darker accents
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+          950: '#052e16',
         },
-        danger: '#F42A41', // Signal Red
+        // Secondary - Professional Blue
+        secondary: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+          950: '#172554',
+        },
+        // Railway Red (Accent)
+        railway: {
+          red: '#dc2626',
+          green: '#15803d',
+          yellow: '#ca8a04',
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'Noto Sans Bengali', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        bangla: ['Noto Sans Bengali', 'sans-serif'],
       },
     },
   },

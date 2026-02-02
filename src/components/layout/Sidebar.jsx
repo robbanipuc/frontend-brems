@@ -1,137 +1,295 @@
-import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-    FaChartPie, FaBuilding, FaUserTie, FaInbox, 
-    FaSignOutAlt, FaTrain, FaUsers, FaUserCircle, 
-    FaEdit, FaTimes 
-} from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import clsx from 'clsx';
+import {
+  HomeIcon,
+  UsersIcon,
+  BuildingOfficeIcon,
+  BriefcaseIcon,
+  DocumentTextIcon,
+  ClipboardDocumentListIcon,
+  ChartBarIcon,
+  UserCircleIcon,
+  Cog6ToothIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ArrowRightOnRectangleIcon,
+  UserGroupIcon,
+  DocumentCheckIcon,
+} from '@heroicons/react/24/outline';
+import { useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
+import { STORAGE_KEYS } from '@/utils/constants';
+import Logo from './Logo';
 
-const Sidebar = ({ isOpen, setIsOpen }) => {
-    const [role, setRole] = useState('');
+const Sidebar = () => {
+  const { user, logout, isSuperAdmin, isOfficeAdmin, isVerifiedUser } = useAuth();
+  const permissions = usePermissions();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(() => {
+    const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED);
+    return stored === 'true';
+  });
 
-    useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user) setRole(user.role);
-    }, []);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, collapsed);
+  }, [collapsed]);
 
-    // Helper to check if user has admin privileges
-    const isAdmin = role === 'super_admin' || role === 'office_admin';
+  // Navigation items configuration
+  const navigationItems = [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: HomeIcon,
+      show: permissions.canViewDashboard,
+    },
+    {
+      name: 'Employees',
+      href: '/employees',
+      icon: UsersIcon,
+      show: permissions.canViewEmployees,
+      children: [
+        { name: 'All Employees', href: '/employees' },
+        { name: 'Add Employee', href: '/employees/create', show: permissions.canCreateEmployee },
+        { name: 'Released Employees', href: '/employees/released' },
+      ],
+    },
+    {
+      name: 'Offices',
+      href: '/offices',
+      icon: BuildingOfficeIcon,
+      show: true,
+    },
+    {
+      name: 'Designations',
+      href: '/designations',
+      icon: BriefcaseIcon,
+      show: true,
+    },
+    {
+      name: 'Users',
+      href: '/users',
+      icon: UserGroupIcon,
+      show: permissions.canViewUsers,
+    },
+    {
+      name: 'Profile Requests',
+      href: '/profile-requests',
+      icon: DocumentCheckIcon,
+      show: permissions.canViewAllRequests,
+      badge: 'pending',
+    },
+    {
+      name: 'Forms',
+      href: '/forms',
+      icon: ClipboardDocumentListIcon,
+      show: true,
+      children: [
+        { name: 'All Forms', href: '/forms' },
+        { name: 'Create Form', href: '/forms/create', show: permissions.canCreateForm },
+        { name: 'My Submissions', href: '/forms/my-submissions', show: !!user?.employee_id },
+        { name: 'All Submissions', href: '/forms/submissions', show: permissions.canViewSubmissions },
+      ],
+    },
+    {
+      name: 'Reports',
+      href: '/reports',
+      icon: ChartBarIcon,
+      show: permissions.canViewReports,
+      children: [
+        { name: 'Employee Statistics', href: '/reports/employees' },
+        { name: 'Transfer Report', href: '/reports/transfers' },
+        { name: 'Promotion Report', href: '/reports/promotions' },
+        { name: 'Office Report', href: '/reports/offices' },
+      ],
+    },
+  ];
 
-    // Dynamic Link Classes
-    const getLinkClasses = ({ isActive }) => {
-        // Base styling for all links
-        const baseClasses = "group flex items-center px-4 py-3 my-1 mx-3 rounded-lg text-sm font-medium transition-all duration-200";
-        
-        // Active: Bright Railway Green BG + White Text
-        const activeClasses = "bg-[#006A4E] text-white shadow-md shadow-green-900/20";
-        
-        // Inactive: Muted text + Hover effect
-        const inactiveClasses = "text-gray-400 hover:text-white hover:bg-[#006A4E]/10";
+  // User menu items
+  const userMenuItems = [
+    {
+      name: 'My Profile',
+      href: '/my-profile',
+      icon: UserCircleIcon,
+      show: true,
+    },
+    {
+      name: 'My Requests',
+      href: '/my-requests',
+      icon: DocumentTextIcon,
+      show: permissions.canViewOwnRequests,
+    },
+    {
+      name: 'Settings',
+      href: '/settings',
+      icon: Cog6ToothIcon,
+      show: true,
+    },
+  ];
 
-        return `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
-    };
+  const NavItem = ({ item, isChild = false }) => {
+    const isActive = location.pathname === item.href || 
+      (item.children?.some(child => location.pathname === child.href));
+
+    if (item.show === false) return null;
 
     return (
-        <aside 
-            className={`
-                fixed top-0 left-0 z-50 h-screen w-64 flex flex-col 
-                bg-[#00281f] text-white shadow-2xl
-                transition-transform duration-300 ease-in-out
-                ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-                lg:translate-x-0
-            `}
-        >
-            {/* --- HEADER --- */}
-            <div className="h-16 flex items-center justify-between px-6 bg-[#001e17] border-b border-[#006A4E]/30 relative">
-                <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded bg-[#006A4E] flex items-center justify-center text-white shadow-lg shadow-green-900/50">
-                        <FaTrain className="text-lg" />
-                    </div>
-                    <div>
-                        <h1 className="text-white font-bold text-base tracking-wide leading-none">BREMS</h1>
-                        <p className="text-[10px] text-[#006A4E] font-bold uppercase tracking-widest mt-1">
-                            {isAdmin ? 'Admin Panel' : 'Staff Portal'}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Mobile Close Button */}
-                <button 
-                    onClick={() => setIsOpen(false)} 
-                    className="lg:hidden text-gray-400 hover:text-white transition-colors"
-                >
-                    <FaTimes />
-                </button>
-            </div>
-
-            {/* --- NAVIGATION --- */}
-            <nav className="flex-1 py-6 overflow-y-auto custom-scrollbar">
-                
-                {/* ADMIN MENU */}
-                {isAdmin && (
-                    <div className="mb-8">
-                        <div className="px-6 mb-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            Management
-                        </div>
-                        <NavLink to="/dashboard" className={getLinkClasses} onClick={() => setIsOpen(false)}>
-                            <FaChartPie className="mr-3 text-lg opacity-80" /> Dashboard
-                        </NavLink>
-                        <NavLink to="/employees" className={getLinkClasses} onClick={() => setIsOpen(false)}>
-                            <FaUsers className="mr-3 text-lg opacity-80" /> Employee Directory
-                        </NavLink>
-
-                        <div className="px-6 mb-3 mt-8 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            Organization
-                        </div>
-                        <NavLink to="/offices" className={getLinkClasses} onClick={() => setIsOpen(false)}>
-                            <FaBuilding className="mr-3 text-lg opacity-80" /> Offices & Stations
-                        </NavLink>
-                        
-                        {role === 'super_admin' && (
-                            <NavLink to="/designations" className={getLinkClasses} onClick={() => setIsOpen(false)}>
-                                <FaUserTie className="mr-3 text-lg opacity-80" /> HR & Designations
-                            </NavLink>
-                        )}
-
-                        <div className="px-6 mb-3 mt-8 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            Workflow
-                        </div>
-                        <NavLink to="/inbox" className={getLinkClasses} onClick={() => setIsOpen(false)}>
-                            <FaInbox className="mr-3 text-lg opacity-80" /> Admin Inbox
-                        </NavLink>
-                    </div>
-                )}
-
-                {/* EMPLOYEE MENU */}
-                {role === 'verified_user' && (
-                    <div className="mb-8">
-                        <div className="px-6 mb-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            Personal
-                        </div>
-                        <NavLink to="/portal" className={getLinkClasses} onClick={() => setIsOpen(false)}>
-                            <FaUserCircle className="mr-3 text-lg opacity-80" /> My Portal
-                        </NavLink>
-                        <NavLink to="/profile/edit" className={getLinkClasses} onClick={() => setIsOpen(false)}>
-                            <FaEdit className="mr-3 text-lg opacity-80" /> Edit Profile
-                        </NavLink>
-                    </div>
-                )}
-            </nav>
-
-            {/* --- FOOTER (LOGOUT) --- */}
-            <div className="p-4 border-t border-[#006A4E]/20 bg-[#001e17]">
-                <button 
-                    onClick={() => { 
-                        localStorage.clear(); 
-                        window.location.href = '/login'; 
-                    }} 
-                    className="w-full flex items-center justify-center bg-[#F42A41] hover:bg-red-700 text-white py-2.5 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-red-900/20 group"
-                >
-                    <FaSignOutAlt className="mr-2 group-hover:-translate-x-1 transition-transform" /> Logout
-                </button>
-            </div>
-        </aside>
+      <NavLink
+        to={item.href}
+        className={({ isActive: linkActive }) =>
+          clsx(
+            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+            isChild && 'ml-9',
+            linkActive || isActive
+              ? 'bg-primary-50 text-primary-700'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+          )
+        }
+      >
+        {!isChild && item.icon && (
+          <item.icon className="w-5 h-5 flex-shrink-0" />
+        )}
+        {!collapsed && (
+          <>
+            <span className="flex-1">{item.name}</span>
+            {item.badge && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                !
+              </span>
+            )}
+          </>
+        )}
+      </NavLink>
     );
+  };
+
+  const NavGroup = ({ item }) => {
+    const [isOpen, setIsOpen] = useState(
+      item.children?.some(child => location.pathname === child.href)
+    );
+
+    if (item.show === false) return null;
+
+    const hasVisibleChildren = item.children?.some(child => child.show !== false);
+
+    if (!hasVisibleChildren) {
+      return <NavItem item={item} />;
+    }
+
+    return (
+      <div>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={clsx(
+            'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+            'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+          )}
+        >
+          {item.icon && <item.icon className="w-5 h-5 flex-shrink-0" />}
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-left">{item.name}</span>
+              <ChevronRightIcon
+                className={clsx(
+                  'w-4 h-4 transition-transform',
+                  isOpen && 'rotate-90'
+                )}
+              />
+            </>
+          )}
+        </button>
+        {!collapsed && isOpen && (
+          <div className="mt-1 space-y-1">
+            {item.children
+              .filter(child => child.show !== false)
+              .map((child) => (
+                <NavItem key={child.href} item={child} isChild />
+              ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <aside
+      className={clsx(
+        'fixed inset-y-0 left-0 z-30 flex flex-col bg-white border-r border-gray-200 transition-all duration-300',
+        collapsed ? 'w-20' : 'w-64'
+      )}
+    >
+      {/* Logo */}
+      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+        <Logo collapsed={collapsed} />
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+        >
+          {collapsed ? (
+            <ChevronRightIcon className="w-5 h-5" />
+          ) : (
+            <ChevronLeftIcon className="w-5 h-5" />
+          )}
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {navigationItems.map((item) =>
+          item.children ? (
+            <NavGroup key={item.href} item={item} />
+          ) : (
+            <NavItem key={item.href} item={item} />
+          )
+        )}
+      </nav>
+
+      {/* Divider */}
+      <div className="px-3">
+        <div className="border-t border-gray-200" />
+      </div>
+
+      {/* User Menu */}
+      <div className="px-3 py-4 space-y-1">
+        {userMenuItems
+          .filter(item => item.show)
+          .map((item) => (
+            <NavItem key={item.href} item={item} />
+          ))}
+        
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          className={clsx(
+            'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+            'text-red-600 hover:bg-red-50'
+          )}
+        >
+          <ArrowRightOnRectangleIcon className="w-5 h-5 flex-shrink-0" />
+          {!collapsed && <span>Logout</span>}
+        </button>
+      </div>
+
+      {/* User Info */}
+      {!collapsed && user && (
+        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
+              {user.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {user.name}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user.role?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
 };
 
 export default Sidebar;

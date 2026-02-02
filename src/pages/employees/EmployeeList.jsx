@@ -48,14 +48,25 @@ const EmployeeList = () => {
 
   // Filters
   const [search, setSearch] = useState(searchParams.get('search') || '');
-  const [officeFilter, setOfficeFilter] = useState(searchParams.get('office_id') || '');
-  const [designationFilter, setDesignationFilter] = useState(searchParams.get('designation_id') || '');
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
-  const [verifiedFilter, setVerifiedFilter] = useState(searchParams.get('is_verified') || '');
+  const [officeFilter, setOfficeFilter] = useState(
+    searchParams.get('office_id') || ''
+  );
+  const [designationFilter, setDesignationFilter] = useState(
+    searchParams.get('designation_id') || ''
+  );
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get('status') || ''
+  );
+  const [verifiedFilter, setVerifiedFilter] = useState(
+    searchParams.get('is_verified') || ''
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   // Verification modal
-  const [verifyModal, setVerifyModal] = useState({ open: false, employee: null });
+  const [verifyModal, setVerifyModal] = useState({
+    open: false,
+    employee: null,
+  });
   const [verifying, setVerifying] = useState(false);
 
   const debouncedSearch = useDebounce(search, 300);
@@ -69,7 +80,13 @@ const EmployeeList = () => {
   // Fetch employees when filters change
   useEffect(() => {
     fetchEmployees();
-  }, [debouncedSearch, officeFilter, designationFilter, statusFilter, verifiedFilter]);
+  }, [
+    debouncedSearch,
+    officeFilter,
+    designationFilter,
+    statusFilter,
+    verifiedFilter,
+  ]);
 
   const fetchEmployees = async () => {
     try {
@@ -137,8 +154,11 @@ const EmployeeList = () => {
     try {
       toast.loading('Exporting CSV...');
       await employeeService.exportCSV({
-        office_id: officeFilter,
-        status: statusFilter,
+        office_id: officeFilter || undefined,
+        designation_id: designationFilter || undefined,
+        status: statusFilter || undefined,
+        is_verified:
+          verifiedFilter === '' ? undefined : verifiedFilter === 'true',
       });
       toast.dismiss();
       toast.success('Export completed');
@@ -152,8 +172,11 @@ const EmployeeList = () => {
     try {
       toast.loading('Generating PDF...');
       await employeeService.exportPDF({
-        office_id: officeFilter,
-        status: statusFilter,
+        office_id: officeFilter || undefined,
+        designation_id: designationFilter || undefined,
+        status: statusFilter || undefined,
+        is_verified:
+          verifiedFilter === '' ? undefined : verifiedFilter === 'true',
       });
       toast.dismiss();
       toast.success('PDF generated');
@@ -171,7 +194,8 @@ const EmployeeList = () => {
     setVerifiedFilter('');
   };
 
-  const hasActiveFilters = officeFilter || designationFilter || statusFilter || verifiedFilter !== '';
+  const hasActiveFilters =
+    officeFilter || designationFilter || statusFilter || verifiedFilter !== '';
 
   // Table columns
   const columns = [
@@ -180,21 +204,27 @@ const EmployeeList = () => {
       header: 'Employee',
       sortable: true,
       render: (_, employee) => (
-        <div className="flex items-center gap-3">
+        <div className='flex items-center gap-3'>
           <Avatar
-            src={employee.profile_picture ? `/storage/${employee.profile_picture}` : null}
+            src={
+              employee.profile_picture
+                ? `/storage/${employee.profile_picture}`
+                : null
+            }
             name={`${employee.first_name} ${employee.last_name}`}
-            size="sm"
+            size='sm'
           />
           <div>
             <Link
               to={`/employees/${employee.id}`}
-              className="font-medium text-gray-900 hover:text-primary-600"
+              className='font-medium text-gray-900 hover:text-primary-600'
             >
               {employee.first_name} {employee.last_name}
             </Link>
             {employee.name_bn && (
-              <p className="text-xs text-gray-500 font-bangla">{employee.name_bn}</p>
+              <p className='text-xs text-gray-500 font-bangla'>
+                {employee.name_bn}
+              </p>
             )}
           </div>
         </div>
@@ -204,9 +234,7 @@ const EmployeeList = () => {
       key: 'nid_number',
       header: 'NID',
       sortable: true,
-      render: (value) => (
-        <span className="font-mono text-sm">{value}</span>
-      ),
+      render: (value) => <span className='font-mono text-sm'>{value}</span>,
     },
     {
       key: 'designation',
@@ -214,9 +242,13 @@ const EmployeeList = () => {
       sortable: true,
       render: (_, employee) => (
         <div>
-          <p className="text-sm text-gray-900">{employee.designation?.title || '-'}</p>
+          <p className='text-sm text-gray-900'>
+            {employee.designation?.title || '-'}
+          </p>
           {employee.designation?.grade && (
-            <p className="text-xs text-gray-500">Grade: {employee.designation.grade}</p>
+            <p className='text-xs text-gray-500'>
+              Grade: {employee.designation.grade}
+            </p>
           )}
         </div>
       ),
@@ -226,7 +258,7 @@ const EmployeeList = () => {
       header: 'Office',
       sortable: true,
       render: (_, employee) => (
-        <span className="text-sm">{employee.office?.name || '-'}</span>
+        <span className='text-sm'>{employee.office?.name || '-'}</span>
       ),
     },
     {
@@ -239,10 +271,15 @@ const EmployeeList = () => {
       header: 'Status',
       sortable: true,
       render: (value) => (
-        <Badge variant={
-          value === EMPLOYEE_STATUS.ACTIVE ? 'success' :
-          value === EMPLOYEE_STATUS.RELEASED ? 'warning' : 'default'
-        }>
+        <Badge
+          variant={
+            value === EMPLOYEE_STATUS.ACTIVE
+              ? 'success'
+              : value === EMPLOYEE_STATUS.RELEASED
+              ? 'warning'
+              : 'default'
+          }
+        >
           {STATUS_LABELS[value] || value}
         </Badge>
       ),
@@ -250,37 +287,47 @@ const EmployeeList = () => {
     {
       key: 'is_verified',
       header: 'Verified',
-      render: (value) => (
+      render: (value) =>
         value ? (
-          <Badge variant="success" dot>Verified</Badge>
+          <Badge variant='success' dot>
+            Verified
+          </Badge>
         ) : (
-          <Badge variant="warning" dot>Pending</Badge>
-        )
-      ),
+          <Badge variant='warning' dot>
+            Pending
+          </Badge>
+        ),
     },
     {
       key: 'actions',
       header: 'Actions',
       align: 'right',
       render: (_, employee) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className='flex items-center justify-end gap-2'>
           <Link to={`/employees/${employee.id}`}>
-            <Button variant="ghost" size="sm" iconOnly icon={EyeIcon} />
+            <Button variant='ghost' size='sm' iconOnly icon={EyeIcon} />
           </Link>
           {permissions.canEditEmployee && (
             <Link to={`/employees/${employee.id}/edit`}>
-              <Button variant="ghost" size="sm" iconOnly icon={PencilSquareIcon} />
+              <Button
+                variant='ghost'
+                size='sm'
+                iconOnly
+                icon={PencilSquareIcon}
+              />
             </Link>
           )}
-          {permissions.canVerifyEmployee && !employee.is_verified && employee.status === 'active' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              iconOnly
-              icon={CheckBadgeIcon}
-              onClick={() => setVerifyModal({ open: true, employee })}
-            />
-          )}
+          {permissions.canVerifyEmployee &&
+            !employee.is_verified &&
+            employee.status === 'active' && (
+              <Button
+                variant='ghost'
+                size='sm'
+                iconOnly
+                icon={CheckBadgeIcon}
+                onClick={() => setVerifyModal({ open: true, employee })}
+              />
+            )}
         </div>
       ),
     },
@@ -289,27 +336,27 @@ const EmployeeList = () => {
   return (
     <div>
       <PageHeader
-        title="Employees"
+        title='Employees'
         subtitle={`Total ${employees.length} employees`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Employees' },
         ]}
         actions={
-          <div className="flex items-center gap-3">
+          <div className='flex items-center gap-3'>
             {permissions.canExportEmployees && (
-              <div className="flex items-center gap-2">
+              <div className='flex items-center gap-2'>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant='outline'
+                  size='sm'
                   icon={ArrowDownTrayIcon}
                   onClick={handleExportCSV}
                 >
                   CSV
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant='outline'
+                  size='sm'
                   icon={ArrowDownTrayIcon}
                   onClick={handleExportPDF}
                 >
@@ -318,7 +365,7 @@ const EmployeeList = () => {
               </div>
             )}
             {permissions.canCreateEmployee && (
-              <Link to="/employees/create">
+              <Link to='/employees/create'>
                 <Button icon={PlusIcon}>Add Employee</Button>
               </Link>
             )}
@@ -328,8 +375,8 @@ const EmployeeList = () => {
 
       {error && (
         <Alert
-          variant="error"
-          className="mb-6"
+          variant='error'
+          className='mb-6'
           dismissible
           onDismiss={() => setError(null)}
         >
@@ -339,30 +386,37 @@ const EmployeeList = () => {
 
       <Card>
         {/* Search and Filter Bar */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className='p-4 border-b border-gray-200'>
+          <div className='flex flex-col sm:flex-row gap-4'>
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Search by name, NID, phone..."
-              className="sm:w-80"
+              placeholder='Search by name, NID, phone...'
+              className='sm:w-80'
             />
-            <div className="flex items-center gap-2 ml-auto">
+            <div className='flex items-center gap-2 ml-auto'>
               <Button
                 variant={showFilters ? 'primary' : 'outline'}
-                size="sm"
+                size='sm'
                 icon={FunnelIcon}
                 onClick={() => setShowFilters(!showFilters)}
               >
                 Filters
                 {hasActiveFilters && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-full">
-                    {[officeFilter, designationFilter, statusFilter, verifiedFilter].filter(Boolean).length}
+                  <span className='ml-1 px-1.5 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-full'>
+                    {
+                      [
+                        officeFilter,
+                        designationFilter,
+                        statusFilter,
+                        verifiedFilter,
+                      ].filter(Boolean).length
+                    }
                   </span>
                 )}
               </Button>
               {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <Button variant='ghost' size='sm' onClick={clearFilters}>
                   Clear
                 </Button>
               )}
@@ -371,23 +425,26 @@ const EmployeeList = () => {
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className='mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
               <Select
-                label="Office"
+                label='Office'
                 value={officeFilter}
                 onChange={(e) => setOfficeFilter(e.target.value)}
-                options={offices.map(o => ({ value: o.id, label: o.name }))}
-                placeholder="All Offices"
+                options={offices.map((o) => ({ value: o.id, label: o.name }))}
+                placeholder='All Offices'
               />
               <Select
-                label="Designation"
+                label='Designation'
                 value={designationFilter}
                 onChange={(e) => setDesignationFilter(e.target.value)}
-                options={designations.map(d => ({ value: d.id, label: d.title }))}
-                placeholder="All Designations"
+                options={designations.map((d) => ({
+                  value: d.id,
+                  label: d.title,
+                }))}
+                placeholder='All Designations'
               />
               <Select
-                label="Status"
+                label='Status'
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 options={[
@@ -395,17 +452,17 @@ const EmployeeList = () => {
                   { value: 'released', label: 'Released' },
                   { value: 'retired', label: 'Retired' },
                 ]}
-                placeholder="All Status"
+                placeholder='All Status'
               />
               <Select
-                label="Verification"
+                label='Verification'
                 value={verifiedFilter}
                 onChange={(e) => setVerifiedFilter(e.target.value)}
                 options={[
                   { value: 'true', label: 'Verified' },
                   { value: 'false', label: 'Not Verified' },
                 ]}
-                placeholder="All"
+                placeholder='All'
               />
             </div>
           )}
@@ -416,9 +473,11 @@ const EmployeeList = () => {
           columns={columns}
           data={employees}
           loading={loading}
-          emptyMessage="No employees found"
-          emptyDescription="Try adjusting your search or filters"
-          onRowClick={(employee) => window.location.href = `/employees/${employee.id}`}
+          emptyMessage='No employees found'
+          emptyDescription='Try adjusting your search or filters'
+          onRowClick={(employee) =>
+            (window.location.href = `/employees/${employee.id}`)
+          }
         />
       </Card>
 
@@ -427,10 +486,10 @@ const EmployeeList = () => {
         isOpen={verifyModal.open}
         onClose={() => setVerifyModal({ open: false, employee: null })}
         onConfirm={handleVerify}
-        title="Verify Employee"
+        title='Verify Employee'
         message={`Are you sure you want to verify ${verifyModal.employee?.first_name} ${verifyModal.employee?.last_name}? This confirms their profile information is accurate.`}
-        confirmText="Verify"
-        variant="success"
+        confirmText='Verify'
+        variant='success'
         loading={verifying}
       />
     </div>

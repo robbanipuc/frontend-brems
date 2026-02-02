@@ -19,7 +19,7 @@ import Dashboard from '@/pages/dashboard/Dashboard';
 import EmployeeList from '@/pages/employees/EmployeeList';
 import EmployeeDetail from '@/pages/employees/EmployeeDetail';
 import EmployeeCreate from '@/pages/employees/EmployeeCreate';
-import EmployeeEdit from '@/pages/employees/EmployeeEdit';
+import EmployeeEditRoute from '@/routes/EmployeeEditRoute';
 import ReleasedEmployees from '@/pages/employees/ReleasedEmployees';
 
 // Offices
@@ -71,7 +71,7 @@ const AppRoutes = () => {
           </GuestRoute>
         }
       >
-        <Route path="/login" element={<Login />} />
+        <Route path='/login' element={<Login />} />
       </Route>
 
       {/* Protected routes */}
@@ -84,7 +84,7 @@ const AppRoutes = () => {
       >
         {/* Dashboard - Admin only */}
         <Route
-          path="/dashboard"
+          path='/dashboard'
           element={
             <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
               <Dashboard />
@@ -93,7 +93,7 @@ const AppRoutes = () => {
         />
 
         {/* Employees */}
-        <Route path="/employees">
+        <Route path='/employees'>
           <Route
             index
             element={
@@ -103,7 +103,7 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path="create"
+            path='create'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <EmployeeCreate />
@@ -111,35 +111,28 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path="released"
+            path='released'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <ReleasedEmployees />
               </RoleRoute>
             }
           />
-          <Route path=":id" element={<EmployeeDetail />} />
-          <Route
-            path=":id/edit"
-            element={
-              <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
-                <EmployeeEdit />
-              </RoleRoute>
-            }
-          />
+          <Route path=':id' element={<EmployeeDetail />} />
+          <Route path=':id/edit' element={<EmployeeEditRoute />} />
         </Route>
 
         {/* Offices */}
-        <Route path="/offices">
+        <Route path='/offices'>
           <Route index element={<OfficeList />} />
-          <Route path=":id" element={<OfficeDetail />} />
+          <Route path=':id' element={<OfficeDetail />} />
         </Route>
 
         {/* Designations */}
-        <Route path="/designations" element={<DesignationList />} />
+        <Route path='/designations' element={<DesignationList />} />
 
         {/* Users - Admin only */}
-        <Route path="/users">
+        <Route path='/users'>
           <Route
             index
             element={
@@ -149,7 +142,7 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path=":id"
+            path=':id'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <UserDetail />
@@ -159,7 +152,7 @@ const AppRoutes = () => {
         </Route>
 
         {/* Profile Requests */}
-        <Route path="/profile-requests">
+        <Route path='/profile-requests'>
           <Route
             index
             element={
@@ -168,16 +161,16 @@ const AppRoutes = () => {
               </RoleRoute>
             }
           />
-          <Route path=":id" element={<ProfileRequestDetail />} />
+          <Route path=':id' element={<ProfileRequestDetail />} />
         </Route>
-        <Route path="/my-requests" element={<MyRequests />} />
-        <Route path="/submit-request" element={<SubmitRequest />} />
+        <Route path='/my-requests' element={<MyRequests />} />
+        <Route path='/submit-request' element={<SubmitRequest />} />
 
         {/* Forms */}
-        <Route path="/forms">
+        <Route path='/forms'>
           <Route index element={<FormList />} />
           <Route
-            path="create"
+            path='create'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
                 <FormBuilder />
@@ -185,17 +178,17 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path=":id/edit"
+            path=':id/edit'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
                 <FormBuilder />
               </RoleRoute>
             }
           />
-          <Route path=":id/fill" element={<FormFill />} />
-          <Route path="my-submissions" element={<MySubmissions />} />
+          <Route path=':id/fill' element={<FormFill />} />
+          <Route path='my-submissions' element={<MySubmissions />} />
           <Route
-            path="submissions"
+            path='submissions'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <FormSubmissions />
@@ -205,9 +198,9 @@ const AppRoutes = () => {
         </Route>
 
         {/* Reports - Admin only */}
-        <Route path="/reports">
+        <Route path='/reports'>
           <Route
-            path="employees"
+            path='employees'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <EmployeeReport />
@@ -215,7 +208,7 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path="transfers"
+            path='transfers'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <TransferReport />
@@ -223,7 +216,7 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path="promotions"
+            path='promotions'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <PromotionReport />
@@ -231,7 +224,7 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path="offices"
+            path='offices'
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <OfficeReport />
@@ -241,16 +234,16 @@ const AppRoutes = () => {
         </Route>
 
         {/* Profile & Settings */}
-        <Route path="/my-profile" element={<MyProfile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/settings/password" element={<ChangePassword />} />
+        <Route path='/my-profile' element={<MyProfile />} />
+        <Route path='/settings' element={<Settings />} />
+        <Route path='/settings/password' element={<ChangePassword />} />
 
         {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path='/' element={<Navigate to='/dashboard' replace />} />
       </Route>
 
       {/* 404 */}
-      <Route path="*" element={<NotFound />} />
+      <Route path='*' element={<NotFound />} />
     </Routes>
   );
 };

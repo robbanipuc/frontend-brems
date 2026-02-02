@@ -52,6 +52,9 @@ const Table = ({
   const sortedData = useMemo(() => {
     if (!sortConfig || onSort) return data;
 
+    const column = columns.find((c) => c.key === sortConfig.key);
+    const sortAsNumber = column?.sortAs === 'number';
+
     return [...data].sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
@@ -59,17 +62,21 @@ const Table = ({
       if (aValue === null || aValue === undefined) return 1;
       if (bValue === null || bValue === undefined) return -1;
 
+      if (sortAsNumber) {
+        const numA = Number(String(aValue).replace(/[^\d.-]/g, '')) || 0;
+        const numB = Number(String(bValue).replace(/[^\d.-]/g, '')) || 0;
+        return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
+      }
+
       if (typeof aValue === 'string') {
         return sortConfig.direction === 'asc'
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
 
-      return sortConfig.direction === 'asc'
-        ? aValue - bValue
-        : bValue - aValue;
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
     });
-  }, [data, sortConfig, onSort]);
+  }, [data, sortConfig, onSort, columns]);
 
   // Handle row selection
   const handleSelectAll = (checked) => {
@@ -99,30 +106,37 @@ const Table = ({
 
     if (sortConfig?.key === column.key) {
       return sortConfig.direction === 'asc' ? (
-        <ChevronUpIcon className="w-4 h-4" />
+        <ChevronUpIcon className='w-4 h-4' />
       ) : (
-        <ChevronDownIcon className="w-4 h-4" />
+        <ChevronDownIcon className='w-4 h-4' />
       );
     }
-    return <ChevronUpDownIcon className="w-4 h-4 text-gray-400" />;
+    return <ChevronUpDownIcon className='w-4 h-4 text-gray-400' />;
   };
 
   return (
-    <div className={clsx('overflow-hidden rounded-lg border border-gray-200', className)}>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className={clsx('bg-gray-50', stickyHeader && 'sticky top-0 z-10')}>
+    <div
+      className={clsx(
+        'overflow-hidden rounded-lg border border-gray-200',
+        className
+      )}
+    >
+      <div className='overflow-x-auto'>
+        <table className='min-w-full divide-y divide-gray-200'>
+          <thead
+            className={clsx('bg-gray-50', stickyHeader && 'sticky top-0 z-10')}
+          >
             <tr>
               {selectable && (
-                <th className="w-12 px-4 py-3">
+                <th className='w-12 px-4 py-3'>
                   <input
-                    type="checkbox"
+                    type='checkbox'
                     checked={isAllSelected}
                     ref={(el) => {
                       if (el) el.indeterminate = isSomeSelected;
                     }}
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className='h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500'
                   />
                 </th>
               )}
@@ -131,7 +145,9 @@ const Table = ({
                   key={column.key}
                   className={clsx(
                     'px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider',
-                    column.sortable && sortable && 'cursor-pointer select-none hover:bg-gray-100',
+                    column.sortable &&
+                      sortable &&
+                      'cursor-pointer select-none hover:bg-gray-100',
                     column.align === 'center' && 'text-center',
                     column.align === 'right' && 'text-right',
                     column.headerClassName
@@ -153,22 +169,22 @@ const Table = ({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className='bg-white divide-y divide-gray-200'>
             {loading ? (
               <tr>
                 <td
                   colSpan={columns.length + (selectable ? 1 : 0)}
-                  className="px-6 py-12 text-center"
+                  className='px-6 py-12 text-center'
                 >
-                  <Spinner size="lg" className="mx-auto text-primary-600" />
-                  <p className="mt-2 text-sm text-gray-500">Loading...</p>
+                  <Spinner size='lg' className='mx-auto text-primary-600' />
+                  <p className='mt-2 text-sm text-gray-500'>Loading...</p>
                 </td>
               </tr>
             ) : sortedData.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length + (selectable ? 1 : 0)}
-                  className="px-6 py-12"
+                  className='px-6 py-12'
                 >
                   <EmptyState
                     title={emptyMessage}
@@ -193,12 +209,17 @@ const Table = ({
                     onClick={() => onRowClick?.(row)}
                   >
                     {selectable && (
-                      <td className="w-12 px-4 py-4" onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className='w-12 px-4 py-4'
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <input
-                          type="checkbox"
+                          type='checkbox'
                           checked={isSelected}
-                          onChange={(e) => handleSelectRow(id, e.target.checked)}
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          onChange={(e) =>
+                            handleSelectRow(id, e.target.checked)
+                          }
+                          className='h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500'
                         />
                       </td>
                     )}

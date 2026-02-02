@@ -32,8 +32,14 @@ const DesignationList = () => {
   const [search, setSearch] = useState('');
 
   // Modal states
-  const [editModal, setEditModal] = useState({ open: false, designation: null });
-  const [deleteModal, setDeleteModal] = useState({ open: false, designation: null });
+  const [editModal, setEditModal] = useState({
+    open: false,
+    designation: null,
+  });
+  const [deleteModal, setDeleteModal] = useState({
+    open: false,
+    designation: null,
+  });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -142,9 +148,11 @@ const DesignationList = () => {
       sortable: true,
       render: (value, designation) => (
         <div>
-          <p className="font-medium text-gray-900">{value}</p>
+          <p className='font-medium text-gray-900'>{value}</p>
           {designation.title_bn && (
-            <p className="text-sm text-gray-500 font-bangla">{designation.title_bn}</p>
+            <p className='text-sm text-gray-500 font-bangla'>
+              {designation.title_bn}
+            </p>
           )}
         </div>
       ),
@@ -153,9 +161,8 @@ const DesignationList = () => {
       key: 'grade',
       header: 'Grade',
       sortable: true,
-      render: (value) => (
-        <Badge variant="info">{value}</Badge>
-      ),
+      sortAs: 'number',
+      render: (value) => <Badge variant='info'>{value}</Badge>,
     },
     {
       key: 'basic_salary',
@@ -163,7 +170,7 @@ const DesignationList = () => {
       sortable: true,
       align: 'right',
       render: (value) => (
-        <span className="font-medium">{formatCurrency(value)}</span>
+        <span className='font-medium'>{formatCurrency(value)}</span>
       ),
     },
     {
@@ -171,20 +178,18 @@ const DesignationList = () => {
       header: 'Employees',
       sortable: true,
       align: 'center',
-      render: (value) => (
-        <span className="text-gray-600">{value || 0}</span>
-      ),
+      render: (value) => <span className='text-gray-600'>{value || 0}</span>,
     },
     {
       key: 'actions',
       header: 'Actions',
       align: 'right',
       render: (_, designation) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className='flex items-center justify-end gap-1'>
           {permissions.canEditDesignation && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               iconOnly
               icon={PencilSquareIcon}
               onClick={() => handleEdit(designation)}
@@ -192,12 +197,12 @@ const DesignationList = () => {
           )}
           {permissions.canDeleteDesignation && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               iconOnly
               icon={TrashIcon}
               onClick={() => handleDelete(designation)}
-              className="text-red-500 hover:text-red-700"
+              className='text-red-500 hover:text-red-700'
               disabled={designation.employees_count > 0}
             />
           )}
@@ -209,7 +214,7 @@ const DesignationList = () => {
   return (
     <div>
       <PageHeader
-        title="Designations"
+        title='Designations'
         subtitle={`${designations.length} designations configured`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
@@ -226,8 +231,8 @@ const DesignationList = () => {
 
       {error && (
         <Alert
-          variant="error"
-          className="mb-6"
+          variant='error'
+          className='mb-6'
           dismissible
           onDismiss={() => setError(null)}
         >
@@ -237,12 +242,12 @@ const DesignationList = () => {
 
       <Card>
         {/* Search */}
-        <div className="p-4 border-b border-gray-200">
+        <div className='p-4 border-b border-gray-200'>
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder="Search designations..."
-            className="w-64"
+            placeholder='Search designations...'
+            className='w-64'
           />
         </div>
 
@@ -251,8 +256,8 @@ const DesignationList = () => {
           columns={columns}
           data={filteredDesignations}
           loading={loading}
-          emptyMessage="No designations found"
-          emptyDescription="Get started by creating your first designation"
+          emptyMessage='No designations found'
+          emptyDescription='Get started by creating your first designation'
         />
       </Card>
 
@@ -260,51 +265,61 @@ const DesignationList = () => {
       <Modal
         isOpen={editModal.open}
         onClose={() => setEditModal({ open: false, designation: null })}
-        title={editModal.designation ? 'Edit Designation' : 'Create Designation'}
-        size="md"
+        title={
+          editModal.designation ? 'Edit Designation' : 'Create Designation'
+        }
+        size='md'
       >
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className='space-y-4'>
           <Input
-            label="Title (English)"
+            label='Title (English)'
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
             error={formErrors.title}
             required
-            placeholder="e.g., Assistant Station Master"
+            placeholder='e.g., Assistant Station Master'
           />
           <Input
-            label="Title (Bangla)"
+            label='Title (Bangla)'
             value={formData.title_bn}
-            onChange={(e) => setFormData({ ...formData, title_bn: e.target.value })}
-            placeholder="সহকারী স্টেশন মাস্টার"
-            className="font-bangla"
+            onChange={(e) =>
+              setFormData({ ...formData, title_bn: e.target.value })
+            }
+            placeholder='সহকারী স্টেশন মাস্টার'
+            className='font-bangla'
           />
           <Input
-            label="Grade"
+            label='Grade'
             value={formData.grade}
-            onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, grade: e.target.value })
+            }
             error={formErrors.grade}
             required
-            placeholder="e.g., Grade-9"
+            placeholder='e.g., Grade-9'
           />
           <Input
-            label="Basic Salary (BDT)"
-            type="number"
+            label='Basic Salary (BDT)'
+            type='number'
             value={formData.basic_salary}
-            onChange={(e) => setFormData({ ...formData, basic_salary: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, basic_salary: e.target.value })
+            }
             error={formErrors.basic_salary}
             required
-            placeholder="e.g., 25000"
+            placeholder='e.g., 25000'
           />
-          <div className="flex justify-end gap-3 pt-4">
+          <div className='flex justify-end gap-3 pt-4'>
             <Button
-              variant="outline"
+              variant='outline'
               onClick={() => setEditModal({ open: false, designation: null })}
               disabled={saving}
             >
               Cancel
             </Button>
-            <Button type="submit" loading={saving}>
+            <Button type='submit' loading={saving}>
               {editModal.designation ? 'Update' : 'Create'}
             </Button>
           </div>
@@ -316,14 +331,14 @@ const DesignationList = () => {
         isOpen={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, designation: null })}
         onConfirm={handleConfirmDelete}
-        title="Delete Designation"
+        title='Delete Designation'
         message={
           deleteModal.designation?.employees_count > 0
             ? `Cannot delete "${deleteModal.designation?.title}" because it has ${deleteModal.designation?.employees_count} employees assigned. Please reassign them first.`
             : `Are you sure you want to delete "${deleteModal.designation?.title}"? This action cannot be undone.`
         }
-        confirmText="Delete"
-        variant="danger"
+        confirmText='Delete'
+        variant='danger'
         loading={deleting}
       />
     </div>

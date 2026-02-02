@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { employeeService, officeService, designationService } from '@/services';
+import { useAuth } from '@/context/AuthContext';
+import {
+  employeeService,
+  officeService,
+  designationService,
+  profileRequestService,
+} from '@/services';
 import {
   PageHeader,
   Card,
@@ -19,7 +25,7 @@ import {
   BLOOD_GROUP_OPTIONS,
   MARITAL_STATUS_OPTIONS,
   EXAM_NAMES,
-  DIVISIONS,
+  ROLES,
 } from '@/utils/constants';
 import { getErrorMessage } from '@/utils/helpers';
 import toast from 'react-hot-toast';
@@ -30,10 +36,29 @@ import FamilySection from './forms/FamilySection';
 import AddressSection from './forms/AddressSection';
 import AcademicsSection from './forms/AcademicsSection';
 
+const PERSONAL_INFO_KEYS = [
+  'first_name',
+  'last_name',
+  'name_bn',
+  'nid_number',
+  'phone',
+  'gender',
+  'dob',
+  'religion',
+  'blood_group',
+  'marital_status',
+  'place_of_birth',
+  'height',
+  'passport',
+  'birth_reg',
+];
+
 const EmployeeEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
+  const isVerifiedUser = user?.role === ROLES.VERIFIED_USER;
+
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -59,15 +84,43 @@ const EmployeeEdit = () => {
     birth_reg: '',
     // Family
     family: {
-      father: { name: '', name_bn: '', nid: '', dob: '', occupation: '', is_alive: true },
-      mother: { name: '', name_bn: '', nid: '', dob: '', occupation: '', is_alive: true },
+      father: {
+        name: '',
+        name_bn: '',
+        nid: '',
+        dob: '',
+        occupation: '',
+        is_alive: true,
+      },
+      mother: {
+        name: '',
+        name_bn: '',
+        nid: '',
+        dob: '',
+        occupation: '',
+        is_alive: true,
+      },
       spouses: [],
       children: [],
     },
     // Addresses
     addresses: {
-      present: { division: '', district: '', upazila: '', post_office: '', house_no: '', village_road: '' },
-      permanent: { division: '', district: '', upazila: '', post_office: '', house_no: '', village_road: '' },
+      present: {
+        division: '',
+        district: '',
+        upazila: '',
+        post_office: '',
+        house_no: '',
+        village_road: '',
+      },
+      permanent: {
+        division: '',
+        district: '',
+        upazila: '',
+        post_office: '',
+        house_no: '',
+        village_road: '',
+      },
     },
     // Academics
     academics: [],
@@ -114,32 +167,36 @@ const EmployeeEdit = () => {
 
     // Initialize family
     const family = emp.family || [];
-    const father = family.find(f => f.relation === 'father') || {};
-    const mother = family.find(f => f.relation === 'mother') || {};
-    const spouses = family.filter(f => f.relation === 'spouse').map(s => ({
-      name: s.name || '',
-      name_bn: s.name_bn || '',
-      nid: s.nid || '',
-      dob: s.dob ? s.dob.split('T')[0] : '',
-      occupation: s.occupation || '',
-      is_alive: s.is_alive ?? true,
-      is_active_marriage: s.is_active_marriage ?? true,
-    }));
-    const children = family.filter(f => f.relation === 'child').map(c => ({
-      name: c.name || '',
-      name_bn: c.name_bn || '',
-      gender: c.gender || '',
-      dob: c.dob ? c.dob.split('T')[0] : '',
-      is_alive: c.is_alive ?? true,
-    }));
+    const father = family.find((f) => f.relation === 'father') || {};
+    const mother = family.find((f) => f.relation === 'mother') || {};
+    const spouses = family
+      .filter((f) => f.relation === 'spouse')
+      .map((s) => ({
+        name: s.name || '',
+        name_bn: s.name_bn || '',
+        nid: s.nid || '',
+        dob: s.dob ? s.dob.split('T')[0] : '',
+        occupation: s.occupation || '',
+        is_alive: s.is_alive ?? true,
+        is_active_marriage: s.is_active_marriage ?? true,
+      }));
+    const children = family
+      .filter((f) => f.relation === 'child')
+      .map((c) => ({
+        name: c.name || '',
+        name_bn: c.name_bn || '',
+        gender: c.gender || '',
+        dob: c.dob ? c.dob.split('T')[0] : '',
+        is_alive: c.is_alive ?? true,
+      }));
 
     // Initialize addresses
     const addresses = emp.addresses || [];
-    const present = addresses.find(a => a.type === 'present') || {};
-    const permanent = addresses.find(a => a.type === 'permanent') || {};
+    const present = addresses.find((a) => a.type === 'present') || {};
+    const permanent = addresses.find((a) => a.type === 'permanent') || {};
 
     // Initialize academics
-    const academics = (emp.academics || []).map(a => ({
+    const academics = (emp.academics || []).map((a) => ({
       exam_name: a.exam_name || '',
       institute: a.institute || '',
       passing_year: a.passing_year || '',
@@ -213,9 +270,43 @@ const EmployeeEdit = () => {
 
     try {
       setSaving(true);
-      await employeeService.updateFullProfile(id, formData);
-      toast.success('Employee updated successfully');
-      navigate(`/employees/${id}`);
+
+      if (isVerifiedUser) {
+        // Verified users submit changes as a profile request for admin review
+        const personalInfo = {};
+        PERSONAL_INFO_KEYS.forEach((key) => {
+          if (formData[key] !== undefined && formData[key] !== '') {
+            personalInfo[key] = formData[key];
+          }
+        });
+        if (formData.dob && typeof formData.dob !== 'string') {
+          personalInfo.dob =
+            formData.dob instanceof Date
+              ? formData.dob.toISOString().slice(0, 10)
+              : formData.dob;
+        }
+
+        const proposedChanges = {
+          personal_info: personalInfo,
+          family: formData.family,
+          addresses: formData.addresses,
+          academics: formData.academics,
+        };
+
+        await profileRequestService.submit({
+          request_type: 'Profile Update',
+          details: 'Requested profile changes from My Profile edit.',
+          proposed_changes: proposedChanges,
+        });
+        toast.success(
+          'Your changes have been submitted for admin review. You can track the request under My Requests.'
+        );
+        navigate('/my-requests');
+      } else {
+        await employeeService.updateFullProfile(id, formData);
+        toast.success('Employee updated successfully');
+        navigate(`/employees/${id}`);
+      }
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       toast.error(errorMessage);
@@ -229,16 +320,16 @@ const EmployeeEdit = () => {
   };
 
   if (loading) {
-    return <LoadingScreen message="Loading employee data..." />;
+    return <LoadingScreen message='Loading employee data...' />;
   }
 
   if (error) {
     return (
-      <div className="p-8">
-        <Alert variant="error" title="Error loading employee">
+      <div className='p-8'>
+        <Alert variant='error' title='Error loading employee'>
           {error}
         </Alert>
-        <Button className="mt-4" onClick={() => navigate('/employees')}>
+        <Button className='mt-4' onClick={() => navigate('/employees')}>
           Back to Employees
         </Button>
       </div>
@@ -291,40 +382,58 @@ const EmployeeEdit = () => {
     },
   ];
 
+  const pageTitle = isVerifiedUser ? 'Request profile update' : 'Edit Employee';
+  const submitLabel = isVerifiedUser ? 'Submit for review' : 'Save Changes';
+  const breadcrumbs = isVerifiedUser
+    ? [
+        { label: 'My Profile', href: '/my-profile' },
+        { label: 'Request profile update' },
+      ]
+    : [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Employees', href: '/employees' },
+        {
+          label: `${employee?.first_name} ${employee?.last_name}`,
+          href: `/employees/${id}`,
+        },
+        { label: 'Edit' },
+      ];
+
   return (
     <div>
       <PageHeader
-        title="Edit Employee"
-        subtitle={`${employee?.first_name} ${employee?.last_name}`}
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Employees', href: '/employees' },
-          { label: `${employee?.first_name} ${employee?.last_name}`, href: `/employees/${id}` },
-          { label: 'Edit' },
-        ]}
+        title={pageTitle}
+        subtitle={
+          isVerifiedUser
+            ? 'Changes will be sent to admin for verification'
+            : `${employee?.first_name} ${employee?.last_name}`
+        }
+        breadcrumbs={breadcrumbs}
       />
 
       <form onSubmit={handleSubmit}>
-        <Card className="mb-6">
+        <Card className='mb-6'>
           <Tabs
             tabs={tabs}
             defaultTab={activeTab}
             onChange={setActiveTab}
-            variant="underline"
+            variant='underline'
           />
         </Card>
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-4">
+        <div className='flex justify-end gap-4'>
           <Button
-            variant="outline"
-            onClick={() => navigate(`/employees/${id}`)}
+            variant='outline'
+            onClick={() =>
+              navigate(isVerifiedUser ? '/my-profile' : `/employees/${id}`)
+            }
             disabled={saving}
           >
             Cancel
           </Button>
-          <Button type="submit" loading={saving}>
-            Save Changes
+          <Button type='submit' loading={saving}>
+            {submitLabel}
           </Button>
         </div>
       </form>

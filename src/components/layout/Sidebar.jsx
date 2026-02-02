@@ -23,7 +23,8 @@ import { STORAGE_KEYS } from '@/utils/constants';
 import Logo from './Logo';
 
 const Sidebar = () => {
-  const { user, logout, isSuperAdmin, isOfficeAdmin, isVerifiedUser } = useAuth();
+  const { user, logout, isSuperAdmin, isOfficeAdmin, isVerifiedUser } =
+    useAuth();
   const permissions = usePermissions();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(() => {
@@ -50,7 +51,11 @@ const Sidebar = () => {
       show: permissions.canViewEmployees,
       children: [
         { name: 'All Employees', href: '/employees' },
-        { name: 'Add Employee', href: '/employees/create', show: permissions.canCreateEmployee },
+        {
+          name: 'Add Employee',
+          href: '/employees/create',
+          show: permissions.canCreateEmployee,
+        },
         { name: 'Released Employees', href: '/employees/released' },
       ],
     },
@@ -86,9 +91,21 @@ const Sidebar = () => {
       show: true,
       children: [
         { name: 'All Forms', href: '/forms' },
-        { name: 'Create Form', href: '/forms/create', show: permissions.canCreateForm },
-        { name: 'My Submissions', href: '/forms/my-submissions', show: !!user?.employee_id },
-        { name: 'All Submissions', href: '/forms/submissions', show: permissions.canViewSubmissions },
+        {
+          name: 'Create Form',
+          href: '/forms/create',
+          show: permissions.canCreateForm,
+        },
+        {
+          name: 'My Submissions',
+          href: '/forms/my-submissions',
+          show: !!user?.employee_id,
+        },
+        {
+          name: 'All Submissions',
+          href: '/forms/submissions',
+          show: permissions.canViewSubmissions,
+        },
       ],
     },
     {
@@ -128,14 +145,16 @@ const Sidebar = () => {
   ];
 
   const NavItem = ({ item, isChild = false }) => {
-    const isActive = location.pathname === item.href || 
-      (item.children?.some(child => location.pathname === child.href));
+    const isActive =
+      location.pathname === item.href ||
+      item.children?.some((child) => location.pathname === child.href);
 
     if (item.show === false) return null;
 
     return (
       <NavLink
         to={item.href}
+        end={isChild}
         className={({ isActive: linkActive }) =>
           clsx(
             'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
@@ -147,13 +166,13 @@ const Sidebar = () => {
         }
       >
         {!isChild && item.icon && (
-          <item.icon className="w-5 h-5 flex-shrink-0" />
+          <item.icon className='w-5 h-5 flex-shrink-0' />
         )}
         {!collapsed && (
           <>
-            <span className="flex-1">{item.name}</span>
+            <span className='flex-1'>{item.name}</span>
             {item.badge && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+              <span className='px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full'>
                 !
               </span>
             )}
@@ -165,12 +184,14 @@ const Sidebar = () => {
 
   const NavGroup = ({ item }) => {
     const [isOpen, setIsOpen] = useState(
-      item.children?.some(child => location.pathname === child.href)
+      item.children?.some((child) => location.pathname === child.href)
     );
 
     if (item.show === false) return null;
 
-    const hasVisibleChildren = item.children?.some(child => child.show !== false);
+    const hasVisibleChildren = item.children?.some(
+      (child) => child.show !== false
+    );
 
     if (!hasVisibleChildren) {
       return <NavItem item={item} />;
@@ -185,10 +206,10 @@ const Sidebar = () => {
             'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           )}
         >
-          {item.icon && <item.icon className="w-5 h-5 flex-shrink-0" />}
+          {item.icon && <item.icon className='w-5 h-5 flex-shrink-0' />}
           {!collapsed && (
             <>
-              <span className="flex-1 text-left">{item.name}</span>
+              <span className='flex-1 text-left'>{item.name}</span>
               <ChevronRightIcon
                 className={clsx(
                   'w-4 h-4 transition-transform',
@@ -199,9 +220,9 @@ const Sidebar = () => {
           )}
         </button>
         {!collapsed && isOpen && (
-          <div className="mt-1 space-y-1">
+          <div className='mt-1 space-y-1'>
             {item.children
-              .filter(child => child.show !== false)
+              .filter((child) => child.show !== false)
               .map((child) => (
                 <NavItem key={child.href} item={child} isChild />
               ))}
@@ -219,22 +240,22 @@ const Sidebar = () => {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+      <div className='flex items-center justify-between h-16 px-4 border-b border-gray-200'>
         <Logo collapsed={collapsed} />
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          className='p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
         >
           {collapsed ? (
-            <ChevronRightIcon className="w-5 h-5" />
+            <ChevronRightIcon className='w-5 h-5' />
           ) : (
-            <ChevronLeftIcon className="w-5 h-5" />
+            <ChevronLeftIcon className='w-5 h-5' />
           )}
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className='flex-1 px-3 py-4 space-y-1 overflow-y-auto'>
         {navigationItems.map((item) =>
           item.children ? (
             <NavGroup key={item.href} item={item} />
@@ -245,18 +266,18 @@ const Sidebar = () => {
       </nav>
 
       {/* Divider */}
-      <div className="px-3">
-        <div className="border-t border-gray-200" />
+      <div className='px-3'>
+        <div className='border-t border-gray-200' />
       </div>
 
       {/* User Menu */}
-      <div className="px-3 py-4 space-y-1">
+      <div className='px-3 py-4 space-y-1'>
         {userMenuItems
-          .filter(item => item.show)
+          .filter((item) => item.show)
           .map((item) => (
             <NavItem key={item.href} item={item} />
           ))}
-        
+
         {/* Logout Button */}
         <button
           onClick={logout}
@@ -265,24 +286,26 @@ const Sidebar = () => {
             'text-red-600 hover:bg-red-50'
           )}
         >
-          <ArrowRightOnRectangleIcon className="w-5 h-5 flex-shrink-0" />
+          <ArrowRightOnRectangleIcon className='w-5 h-5 flex-shrink-0' />
           {!collapsed && <span>Logout</span>}
         </button>
       </div>
 
       {/* User Info */}
       {!collapsed && user && (
-        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
+        <div className='px-4 py-3 border-t border-gray-200 bg-gray-50'>
+          <div className='flex items-center gap-3'>
+            <div className='w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium'>
               {user.name?.charAt(0).toUpperCase()}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+            <div className='flex-1 min-w-0'>
+              <p className='text-sm font-medium text-gray-900 truncate'>
                 {user.name}
               </p>
-              <p className="text-xs text-gray-500 truncate">
-                {user.role?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              <p className='text-xs text-gray-500 truncate'>
+                {user.role
+                  ?.replace('_', ' ')
+                  .replace(/\b\w/g, (l) => l.toUpperCase())}
               </p>
             </div>
           </div>

@@ -231,33 +231,33 @@ const UserList = () => {
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
               className='w-40'
-            >
-              <option value=''>All roles</option>
-              <option value='super_admin'>Super Admin</option>
-              <option value='office_admin'>Office Admin</option>
-              <option value='verified_user'>Verified User</option>
-            </Select>
+              placeholder='All roles'
+              options={[
+                { value: 'super_admin', label: 'Super Admin' },
+                { value: 'office_admin', label: 'Office Admin' },
+                { value: 'verified_user', label: 'Verified User' },
+              ]}
+            />
             <Select
-              value={officeFilter}
+              value={officeFilter === '' ? '' : String(officeFilter)}
               onChange={(e) => setOfficeFilter(e.target.value)}
               className='w-48'
-            >
-              <option value=''>All offices</option>
-              {officeList.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name}
-                </option>
-              ))}
-            </Select>
+              placeholder='All offices'
+              options={officeList.map((o) => ({
+                value: String(o.id),
+                label: o.name,
+              }))}
+            />
             <Select
               value={activeFilter}
               onChange={(e) => setActiveFilter(e.target.value)}
               className='w-32'
-            >
-              <option value=''>All</option>
-              <option value='true'>Active</option>
-              <option value='false'>Inactive</option>
-            </Select>
+              placeholder='All'
+              options={[
+                { value: 'true', label: 'Active' },
+                { value: 'false', label: 'Inactive' },
+              ]}
+            />
           </div>
         </div>
 

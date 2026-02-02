@@ -20,7 +20,66 @@ import {
   ConfirmModal,
 } from '@/components/common';
 import { formatDate, getFullName, getErrorMessage } from '@/utils/helpers';
+import { getProposedChangesSections } from '@/utils/profileRequestChanges';
 import toast from 'react-hot-toast';
+
+function ProposedChangesDisplay({ currentData, proposedChanges }) {
+  const sections = getProposedChangesSections(currentData, proposedChanges);
+
+  if (!sections.length) {
+    return (
+      <p className='text-sm text-gray-500 italic'>
+        No field-level changes to display (e.g. file-only or metadata update).
+      </p>
+    );
+  }
+
+  return (
+    <div className='space-y-6'>
+      {sections.map((section) => (
+        <div key={section.title}>
+          <h4 className='text-sm font-semibold text-gray-700 mb-2'>
+            {section.title}
+          </h4>
+          <div className='overflow-x-auto rounded-lg border border-gray-200'>
+            <table className='min-w-full divide-y divide-gray-200 text-sm'>
+              <thead className='bg-gray-50'>
+                <tr>
+                  <th className='px-4 py-2 text-left font-medium text-gray-600'>
+                    Field
+                  </th>
+                  <th className='px-4 py-2 text-left font-medium text-gray-600'>
+                    Previous value
+                  </th>
+                  <th className='px-4 py-2 text-left font-medium text-gray-600'>
+                    Proposed value
+                  </th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-gray-200 bg-white'>
+                {section.rows.map((row, idx) => (
+                  <tr key={`${section.title}-${idx}`}>
+                    <td className='px-4 py-2 font-medium text-gray-900 align-top w-48'>
+                      {row.label}
+                    </td>
+                    <td className='px-4 py-2 text-gray-600 align-top max-w-md break-words'>
+                      {row.previous}
+                    </td>
+                    <td className='px-4 py-2 align-top max-w-md break-words'>
+                      <span className='text-primary-600 font-medium'>
+                        {row.proposed}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const ProfileRequestDetail = () => {
   const { id } = useParams();
@@ -162,8 +221,8 @@ const ProfileRequestDetail = () => {
         }
       />
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-        <Card className='lg:col-span-2'>
+      <div className='grid grid-cols-1 gap-6'>
+        <Card>
           <h3 className='text-sm font-medium text-gray-500 mb-4'>
             Request details
           </h3>
@@ -266,9 +325,10 @@ const ProfileRequestDetail = () => {
           <h3 className='text-sm font-medium text-gray-500 mb-4'>
             Proposed changes
           </h3>
-          <pre className='text-xs bg-gray-50 p-4 rounded-lg overflow-auto max-h-96'>
-            {JSON.stringify(request.proposed_changes || {}, null, 2)}
-          </pre>
+          <ProposedChangesDisplay
+            currentData={request.current_data}
+            proposedChanges={request.proposed_changes}
+          />
         </Card>
       </div>
 

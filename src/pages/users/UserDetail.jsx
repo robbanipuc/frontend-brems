@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   UserCircleIcon,
@@ -44,6 +44,7 @@ const UserDetail = () => {
   const [linkSearchLoading, setLinkSearchLoading] = useState(false);
   const [linkLoading, setLinkLoading] = useState(false);
   const [unlinkLoading, setUnlinkLoading] = useState(false);
+  const linkSearchInputRef = useRef(null);
 
   useEffect(() => {
     fetchUser();
@@ -346,6 +347,7 @@ const UserDetail = () => {
         onClose={() => setLinkModalOpen(false)}
         title='Link employee to this user'
         size='lg'
+        initialFocus={linkSearchInputRef}
       >
         <div className='space-y-4'>
           <p className='text-sm text-gray-600'>
@@ -354,8 +356,9 @@ const UserDetail = () => {
             profile.
           </p>
           <SearchInput
+            ref={linkSearchInputRef}
             value={linkSearch}
-            onChange={(e) => setLinkSearch(e.target.value)}
+            onChange={(value) => setLinkSearch(value)}
             placeholder='Search by name or NID...'
             className='w-full'
           />

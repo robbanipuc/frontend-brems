@@ -54,23 +54,31 @@ const Tabs = ({
   const currentVariant = variants[variant];
 
   return (
-    <div className={className}>
-      {/* Tab List */}
-      <div className={clsx('flex', currentVariant.container, fullWidth && 'w-full')}>
+    <div className={clsx('min-w-0', className)}>
+      {/* Tab List - scrollable on small screens when many tabs */}
+      <div
+        className={clsx(
+          'flex flex-nowrap',
+          !fullWidth && 'overflow-x-auto overflow-y-hidden -mx-px',
+          currentVariant.container,
+          fullWidth && 'w-full'
+        )}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            type="button"
+            type='button'
             onClick={() => handleTabChange(tab.id)}
             disabled={tab.disabled}
             className={clsx(
+              'flex-shrink-0',
               currentVariant.tab(activeTab === tab.id),
-              fullWidth && 'flex-1',
+              fullWidth && 'flex-1 min-w-0',
               tab.disabled && 'opacity-50 cursor-not-allowed'
             )}
           >
-            <span className="flex items-center justify-center gap-2">
-              {tab.icon && <tab.icon className="w-5 h-5" />}
+            <span className='flex items-center justify-center gap-2'>
+              {tab.icon && <tab.icon className='w-5 h-5' />}
               {tab.label}
               {tab.badge !== undefined && (
                 <span
@@ -91,7 +99,9 @@ const Tabs = ({
 
       {/* Tab Content */}
       {activeTabData?.content && (
-        <div className="mt-4">{activeTabData.content}</div>
+        <div className='mt-4 min-w-0 overflow-x-auto'>
+          {activeTabData.content}
+        </div>
       )}
     </div>
   );

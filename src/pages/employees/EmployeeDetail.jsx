@@ -227,7 +227,7 @@ const EmployeeDetail = () => {
   ];
 
   return (
-    <div>
+    <div className='min-w-0 overflow-x-hidden'>
       <PageHeader
         title='Employee Details'
         breadcrumbs={[
@@ -236,7 +236,7 @@ const EmployeeDetail = () => {
           { label: `${employee.first_name} ${employee.last_name}` },
         ]}
         actions={
-          <div className='flex items-center gap-2'>
+          <div className='flex flex-wrap items-center gap-2 w-full sm:w-auto'>
             <Button
               variant='outline'
               size='sm'
@@ -257,11 +257,11 @@ const EmployeeDetail = () => {
       />
 
       {/* Employee Header Card */}
-      <Card className='mb-6'>
-        <div className='p-6'>
-          <div className='flex flex-col md:flex-row gap-6'>
+      <Card className='mb-6 overflow-hidden'>
+        <div className='p-4 sm:p-6 min-w-0'>
+          <div className='flex flex-col md:flex-row gap-4 sm:gap-6'>
             {/* Avatar & Basic Info */}
-            <div className='flex items-start gap-4'>
+            <div className='flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 min-w-0'>
               <Avatar
                 src={
                   employee.profile_picture
@@ -270,9 +270,10 @@ const EmployeeDetail = () => {
                 }
                 name={`${employee.first_name} ${employee.last_name}`}
                 size='2xl'
+                className='flex-shrink-0'
               />
-              <div>
-                <h2 className='text-2xl font-bold text-gray-900'>
+              <div className='min-w-0'>
+                <h2 className='text-xl sm:text-2xl font-bold text-gray-900 break-words'>
                   {employee.first_name} {employee.last_name}
                 </h2>
                 {employee.name_bn && (
@@ -314,27 +315,40 @@ const EmployeeDetail = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className='md:ml-auto grid grid-cols-2 md:grid-cols-4 gap-4'>
-              <div className='text-center p-4 bg-gray-50 rounded-lg'>
-                <p className='text-2xl font-bold text-gray-900'>
+            <div className='md:ml-auto grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 min-w-0'>
+              <div className='text-center p-3 sm:p-4 bg-gray-50 rounded-lg min-w-0'>
+                <p
+                  className='text-lg sm:text-2xl font-bold text-gray-900 truncate'
+                  title={formatCurrency(
+                    employee.designation?.basic_salary,
+                    false
+                  )}
+                >
                   {formatCurrency(employee.designation?.basic_salary, false)}
                 </p>
                 <p className='text-xs text-gray-500'>Basic Salary</p>
               </div>
-              <div className='text-center p-4 bg-gray-50 rounded-lg'>
-                <p className='text-2xl font-bold text-gray-900'>
+              <div className='text-center p-3 sm:p-4 bg-gray-50 rounded-lg min-w-0'>
+                <p className='text-lg sm:text-2xl font-bold text-gray-900'>
                   {employee.transfers?.length || 0}
                 </p>
                 <p className='text-xs text-gray-500'>Transfers</p>
               </div>
-              <div className='text-center p-4 bg-gray-50 rounded-lg'>
-                <p className='text-2xl font-bold text-gray-900'>
+              <div className='text-center p-3 sm:p-4 bg-gray-50 rounded-lg min-w-0'>
+                <p className='text-lg sm:text-2xl font-bold text-gray-900'>
                   {employee.promotions?.length || 0}
                 </p>
                 <p className='text-xs text-gray-500'>Promotions</p>
               </div>
-              <div className='text-center p-4 bg-gray-50 rounded-lg'>
-                <p className='text-2xl font-bold text-gray-900'>
+              <div className='text-center p-3 sm:p-4 bg-gray-50 rounded-lg min-w-0'>
+                <p
+                  className='text-lg sm:text-2xl font-bold text-gray-900 truncate'
+                  title={
+                    employee.joining_date
+                      ? formatDate(employee.joining_date)
+                      : ''
+                  }
+                >
                   {employee.joining_date
                     ? formatDate(employee.joining_date)
                     : '-'}
@@ -346,7 +360,7 @@ const EmployeeDetail = () => {
 
           {/* Action Buttons */}
           {canManage && employee.status === EMPLOYEE_STATUS.ACTIVE && (
-            <div className='mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-3'>
+            <div className='mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-2 sm:gap-3'>
               {!employee.is_verified && (
                 <Button
                   variant='success'
@@ -415,7 +429,7 @@ const EmployeeDetail = () => {
       </Card>
 
       {/* Tabs */}
-      <Card>
+      <Card className='min-w-0 overflow-hidden'>
         <Tabs
           tabs={tabs}
           defaultTab={activeTab}

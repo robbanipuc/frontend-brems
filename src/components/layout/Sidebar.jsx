@@ -27,14 +27,18 @@ const Sidebar = ({ onNavigateClick }) => {
     useAuth();
   const permissions = usePermissions();
   const location = useLocation();
+  const isMobile = !!onNavigateClick;
   const [collapsed, setCollapsed] = useState(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED);
     return stored === 'true';
   });
+  const effectiveCollapsed = isMobile ? false : collapsed;
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, collapsed);
-  }, [collapsed]);
+    if (!isMobile) {
+      localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, collapsed);
+    }
+  }, [isMobile, collapsed]);
 
   // Navigation items configuration
   const navigationItems = [
@@ -169,7 +173,7 @@ const Sidebar = ({ onNavigateClick }) => {
         {!isChild && item.icon && (
           <item.icon className='w-5 h-5 flex-shrink-0' />
         )}
-        {!collapsed && (
+        {!effectiveCollapsed && (
           <>
             <span className='flex-1'>{item.name}</span>
             {item.badge && (
@@ -208,7 +212,7 @@ const Sidebar = ({ onNavigateClick }) => {
           )}
         >
           {item.icon && <item.icon className='w-5 h-5 flex-shrink-0' />}
-          {!collapsed && (
+          {!effectiveCollapsed && (
             <>
               <span className='flex-1 text-left'>{item.name}</span>
               <ChevronRightIcon
@@ -220,7 +224,7 @@ const Sidebar = ({ onNavigateClick }) => {
             </>
           )}
         </button>
-        {!collapsed && isOpen && (
+        {!effectiveCollapsed && isOpen && (
           <div className='mt-1 space-y-1'>
             {item.children
               .filter((child) => child.show !== false)
@@ -233,32 +237,29 @@ const Sidebar = ({ onNavigateClick }) => {
     );
   };
 
-  return (
-    <aside
-      className={clsx(
-        'fixed inset-y-0 left-0 z-30 flex flex-col bg-white border-r border-gray-200 transition-all duration-300',
-        collapsed ? 'w-20' : 'w-64'
+  const header = (
+    <div className='flex items-center justify-between h-16 px-4 border-b border-gray-200 shrink-0'>
+      <Logo collapsed={effectiveCollapsed} />
+      {!isMobile && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className='p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
+        >
+          {effectiveCollapsed ? (
+            <ChevronRightIcon className='w-5 h-5' />
+          ) : (
+            <ChevronLeftIcon className='w-5 h-5' />
+          )}
+        </button>
       )}
-    >
-      {/* Logo */}
-      <div className='flex items-center justify-between h-16 px-4 border-b border-gray-200'>
-        <Logo collapsed={collapsed} />
-        {!onNavigateClick && (
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className='p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
-          >
-            {collapsed ? (
-              <ChevronRightIcon className='w-5 h-5' />
-            ) : (
-              <ChevronLeftIcon className='w-5 h-5' />
-            )}
-          </button>
-        )}
-      </div>
+    </div>
+  );
 
+  const inner = (
+    <>
+      {header}
       {/* Navigation */}
-      <nav className='flex-1 px-3 py-4 space-y-1 overflow-y-auto'>
+      <nav className='flex-1 min-h-0 px-3 py-4 space-y-1 overflow-y-auto'>
         {navigationItems.map((item) =>
           item.children ? (
             <NavGroup key={item.href} item={item} />
@@ -293,12 +294,12 @@ const Sidebar = ({ onNavigateClick }) => {
           )}
         >
           <ArrowRightOnRectangleIcon className='w-5 h-5 flex-shrink-0' />
-          {!collapsed && <span>Logout</span>}
+          {!effectiveCollapsed && <span>Logout</span>}
         </button>
       </div>
 
       {/* User Info */}
-      {!collapsed && user && (
+      {!effectiveCollapsed && user && (
         <div className='px-4 py-3 border-t border-gray-200 bg-gray-50'>
           <div className='flex items-center gap-3'>
             <div className='w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium'>
@@ -317,6 +318,25 @@ const Sidebar = ({ onNavigateClick }) => {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <div className='flex flex-col flex-1 min-h-0 w-full bg-white overflow-hidden'>
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <aside
+      className={clsx(
+        'fixed inset-y-0 left-0 z-30 flex flex-col bg-white border-r border-gray-200 transition-all duration-300',
+        collapsed ? 'w-20' : 'w-64'
+      )}
+    >
+      {inner}
     </aside>
   );
 };

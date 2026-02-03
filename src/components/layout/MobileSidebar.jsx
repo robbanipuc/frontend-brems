@@ -43,8 +43,8 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                   <XMarkIcon className='h-6 w-6' />
                 </button>
               </div>
-              {/* Sidebar content - closes on nav click */}
-              <div className='flex grow flex-col gap-y-5 overflow-y-auto'>
+              {/* Sidebar content - closes on nav click; overflow hidden so Sidebar nav scrolls internally */}
+              <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
                 <Sidebar onNavigateClick={onClose} />
               </div>
             </Dialog.Panel>

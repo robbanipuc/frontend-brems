@@ -6,7 +6,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
   timeout: 30000, // 30 seconds
 });
@@ -35,7 +35,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-      
+
       // Redirect to login if not already there
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
@@ -63,9 +63,12 @@ api.interceptors.response.use(
 
 // API Helper Methods
 export const apiGet = (url, config = {}) => api.get(url, config);
-export const apiPost = (url, data = {}, config = {}) => api.post(url, data, config);
-export const apiPut = (url, data = {}, config = {}) => api.put(url, data, config);
-export const apiPatch = (url, data = {}, config = {}) => api.patch(url, data, config);
+export const apiPost = (url, data = {}, config = {}) =>
+  api.post(url, data, config);
+export const apiPut = (url, data = {}, config = {}) =>
+  api.put(url, data, config);
+export const apiPatch = (url, data = {}, config = {}) =>
+  api.patch(url, data, config);
 export const apiDelete = (url, config = {}) => api.delete(url, config);
 
 // File upload helper
@@ -85,12 +88,30 @@ export const apiUpload = (url, formData, onProgress) => {
   });
 };
 
-// Download file helper
+// Download file helper - rejects on non-2xx and parses error blob as JSON when possible
 export const apiDownload = async (url, filename) => {
-  const response = await api.get(url, {
-    responseType: 'blob',
-  });
-  
+  const response = await api
+    .get(url, {
+      responseType: 'blob',
+      validateStatus: (status) => status >= 200 && status < 300,
+    })
+    .catch(async (err) => {
+      if (err.response?.data instanceof Blob) {
+        let message = 'Download failed';
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          err.response.data = json;
+        } catch (_) {
+          try {
+            message = (await err.response.data.text()) || message;
+          } catch (__) {}
+          err.response.data = { message };
+        }
+      }
+      throw err;
+    });
+
   const blob = new Blob([response.data]);
   const downloadUrl = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -100,7 +121,7 @@ export const apiDownload = async (url, filename) => {
   link.click();
   link.remove();
   window.URL.revokeObjectURL(downloadUrl);
-  
+
   return response;
 };
 

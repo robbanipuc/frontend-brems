@@ -1,5 +1,14 @@
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
-import { DATE_FORMATS } from './constants';
+import { DATE_FORMATS, STORAGE_BASE_URL } from './constants';
+
+/**
+ * Full URL for a storage file (backend). Use for links so /storage/... doesn't hit SPA and 404.
+ */
+export const getStorageUrl = (path) => {
+  if (!path) return null;
+  const base = (STORAGE_BASE_URL || '').replace(/\/$/, '');
+  return `${base}/storage/${path.replace(/^\//, '')}`;
+};
 
 /**
  * Format date for display
@@ -144,14 +153,14 @@ export const getAvatarColor = (name) => {
     'bg-fuchsia-500',
     'bg-pink-500',
   ];
-  
+
   if (!name) return colors[0];
-  
+
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
-  
+
   return colors[Math.abs(hash) % colors.length];
 };
 
@@ -190,7 +199,9 @@ export const isEmpty = (obj) => {
  */
 export const removeEmptyValues = (obj) => {
   return Object.fromEntries(
-    Object.entries(obj).filter(([_, v]) => v !== null && v !== undefined && v !== '')
+    Object.entries(obj).filter(
+      ([_, v]) => v !== null && v !== undefined && v !== ''
+    )
   );
 };
 

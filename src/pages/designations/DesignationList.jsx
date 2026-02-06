@@ -3,7 +3,7 @@ import {
   PlusIcon,
   PencilSquareIcon,
   TrashIcon,
-  BriefcaseIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import { usePermissions } from '@/hooks/usePermissions';
 import { designationService } from '@/services';
@@ -14,9 +14,9 @@ import {
   Badge,
   Table,
   Alert,
-  EmptyState,
   Modal,
   Input,
+  Textarea,
   ConfirmModal,
   SearchInput,
 } from '@/components/common';
@@ -36,6 +36,10 @@ const DesignationList = () => {
     open: false,
     designation: null,
   });
+  const [viewModal, setViewModal] = useState({
+    open: false,
+    designation: null,
+  });
   const [deleteModal, setDeleteModal] = useState({
     open: false,
     designation: null,
@@ -48,7 +52,10 @@ const DesignationList = () => {
     title: '',
     title_bn: '',
     grade: '',
-    basic_salary: '',
+    salary_min: '',
+    salary_max: '',
+    method_of_recruitment: '',
+    qualifications: '',
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -74,10 +81,17 @@ const DesignationList = () => {
       title: designation?.title || '',
       title_bn: designation?.title_bn || '',
       grade: designation?.grade || '',
-      basic_salary: designation?.basic_salary || '',
+      salary_min: designation?.salary_min || '',
+      salary_max: designation?.salary_max || '',
+      method_of_recruitment: designation?.method_of_recruitment || '',
+      qualifications: designation?.qualifications || '',
     });
     setFormErrors({});
     setEditModal({ open: true, designation });
+  };
+
+  const handleView = (designation) => {
+    setViewModal({ open: true, designation });
   };
 
   const handleDelete = (designation) => {
@@ -91,7 +105,15 @@ const DesignationList = () => {
     const errors = {};
     if (!formData.title.trim()) errors.title = 'Title is required';
     if (!formData.grade.trim()) errors.grade = 'Grade is required';
-    if (!formData.basic_salary) errors.basic_salary = 'Salary is required';
+    if (!formData.salary_min) errors.salary_min = 'Minimum salary is required';
+    if (!formData.salary_max) errors.salary_max = 'Maximum salary is required';
+    if (
+      formData.salary_min &&
+      formData.salary_max &&
+      parseFloat(formData.salary_max) < parseFloat(formData.salary_min)
+    ) {
+      errors.salary_max = 'Maximum salary must be greater than or equal to minimum';
+    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -140,6 +162,12 @@ const DesignationList = () => {
     }
   };
 
+  const formatSalaryRange = (min, max) => {
+    if (!min && !max) return '-';
+    if (min === max) return formatCurrency(min);
+    return `${formatCurrency(min)} - ${formatCurrency(max)}`;
+  };
+
   const filteredDesignations = search
     ? designations.filter(
         (d) =>
@@ -172,12 +200,14 @@ const DesignationList = () => {
       render: (value) => <Badge variant='info'>{value}</Badge>,
     },
     {
-      key: 'basic_salary',
-      header: 'Basic Salary',
-      sortable: true,
+      key: 'salary_range',
+      header: 'Salary Range (BDT)',
+      sortable: false,
       align: 'right',
-      render: (value) => (
-        <span className='font-medium'>{formatCurrency(value)}</span>
+      render: (_, designation) => (
+        <span className='font-medium'>
+          {formatSalaryRange(designation.salary_min, designation.salary_max)}
+        </span>
       ),
     },
     {
@@ -193,6 +223,14 @@ const DesignationList = () => {
       align: 'right',
       render: (_, designation) => (
         <div className='flex items-center justify-end gap-1'>
+          <Button
+            variant='ghost'
+            size='sm'
+            iconOnly
+            icon={EyeIcon}
+            onClick={() => handleView(designation)}
+            title='View Details'
+          />
           {permissions.canEditDesignation && (
             <Button
               variant='ghost'
@@ -200,6 +238,7 @@ const DesignationList = () => {
               iconOnly
               icon={PencilSquareIcon}
               onClick={() => handleEdit(designation)}
+              title='Edit'
             />
           )}
           {permissions.canDeleteDesignation && (
@@ -211,6 +250,7 @@ const DesignationList = () => {
               onClick={() => handleDelete(designation)}
               className='text-red-500 hover:text-red-700'
               disabled={designation.employees_count > 0}
+              title='Delete'
             />
           )}
         </div>
@@ -275,28 +315,31 @@ const DesignationList = () => {
         title={
           editModal.designation ? 'Edit Designation' : 'Create Designation'
         }
-        size='md'
+        size='lg'
       >
         <form onSubmit={handleSave} className='space-y-4'>
-          <Input
-            label='Title (English)'
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            error={formErrors.title}
-            required
-            placeholder='e.g., Assistant Station Master'
-          />
-          <Input
-            label='Title (Bangla)'
-            value={formData.title_bn}
-            onChange={(e) =>
-              setFormData({ ...formData, title_bn: e.target.value })
-            }
-            placeholder='সহকারী স্টেশন মাস্টার'
-            className='font-bangla'
-          />
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Input
+              label='Title (English)'
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              error={formErrors.title}
+              required
+              placeholder='e.g., Assistant Station Master'
+            />
+            <Input
+              label='Title (Bangla)'
+              value={formData.title_bn}
+              onChange={(e) =>
+                setFormData({ ...formData, title_bn: e.target.value })
+              }
+              placeholder='সহকারী স্টেশন মাস্টার'
+              className='font-bangla'
+            />
+          </div>
+
           <Input
             label='Grade'
             value={formData.grade}
@@ -305,20 +348,59 @@ const DesignationList = () => {
             }
             error={formErrors.grade}
             required
-            placeholder='e.g., Grade-9'
+            placeholder='e.g., Grade-9 or just 9'
           />
-          <Input
-            label='Basic Salary (BDT)'
-            type='number'
-            value={formData.basic_salary}
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Input
+              label='Minimum Salary (BDT)'
+              type='number'
+              value={formData.salary_min}
+              onChange={(e) =>
+                setFormData({ ...formData, salary_min: e.target.value })
+              }
+              error={formErrors.salary_min}
+              required
+              placeholder='e.g., 22000'
+              min='0'
+            />
+            <Input
+              label='Maximum Salary (BDT)'
+              type='number'
+              value={formData.salary_max}
+              onChange={(e) =>
+                setFormData({ ...formData, salary_max: e.target.value })
+              }
+              error={formErrors.salary_max}
+              required
+              placeholder='e.g., 53060'
+              min='0'
+            />
+          </div>
+
+          <Textarea
+            label='Method of Recruitment'
+            value={formData.method_of_recruitment}
             onChange={(e) =>
-              setFormData({ ...formData, basic_salary: e.target.value })
+              setFormData({ ...formData, method_of_recruitment: e.target.value })
             }
-            error={formErrors.basic_salary}
-            required
-            placeholder='e.g., 25000'
+            error={formErrors.method_of_recruitment}
+            placeholder='e.g., Direct recruitment through PSC / By promotion from...'
+            rows={3}
           />
-          <div className='flex justify-end gap-3 pt-4'>
+
+          <Textarea
+            label='Qualifications'
+            value={formData.qualifications}
+            onChange={(e) =>
+              setFormData({ ...formData, qualifications: e.target.value })
+            }
+            error={formErrors.qualifications}
+            placeholder='e.g., Bachelor degree in relevant field with minimum 3 years experience...'
+            rows={3}
+          />
+
+          <div className='flex justify-end gap-3 pt-4 border-t'>
             <Button
               variant='outline'
               onClick={() => setEditModal({ open: false, designation: null })}
@@ -331,6 +413,94 @@ const DesignationList = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* View Details Modal */}
+      <Modal
+        isOpen={viewModal.open}
+        onClose={() => setViewModal({ open: false, designation: null })}
+        title='Designation Details'
+        size='lg'
+      >
+        {viewModal.designation && (
+          <div className='space-y-6'>
+            {/* Basic Info */}
+            <div className='grid grid-cols-2 gap-4'>
+              <div>
+                <label className='text-sm font-medium text-gray-500'>
+                  Title (English)
+                </label>
+                <p className='mt-1 text-gray-900'>
+                  {viewModal.designation.title}
+                </p>
+              </div>
+              <div>
+                <label className='text-sm font-medium text-gray-500'>
+                  Title (Bangla)
+                </label>
+                <p className='mt-1 text-gray-900 font-bangla'>
+                  {viewModal.designation.title_bn || '-'}
+                </p>
+              </div>
+              <div>
+                <label className='text-sm font-medium text-gray-500'>
+                  Grade
+                </label>
+                <p className='mt-1'>
+                  <Badge variant='info'>{viewModal.designation.grade}</Badge>
+                </p>
+              </div>
+              <div>
+                <label className='text-sm font-medium text-gray-500'>
+                  Salary Range (BDT)
+                </label>
+                <p className='mt-1 text-gray-900 font-medium'>
+                  {formatSalaryRange(
+                    viewModal.designation.salary_min,
+                    viewModal.designation.salary_max
+                  )}
+                </p>
+              </div>
+              <div>
+                <label className='text-sm font-medium text-gray-500'>
+                  Total Employees
+                </label>
+                <p className='mt-1 text-gray-900'>
+                  {viewModal.designation.employees_count || 0}
+                </p>
+              </div>
+            </div>
+
+            {/* Method of Recruitment */}
+            <div>
+              <label className='text-sm font-medium text-gray-500'>
+                Method of Recruitment
+              </label>
+              <p className='mt-1 text-gray-900 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg'>
+                {viewModal.designation.method_of_recruitment || 'Not specified'}
+              </p>
+            </div>
+
+            {/* Qualifications */}
+            <div>
+              <label className='text-sm font-medium text-gray-500'>
+                Qualifications
+              </label>
+              <p className='mt-1 text-gray-900 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg'>
+                {viewModal.designation.qualifications || 'Not specified'}
+              </p>
+            </div>
+
+            <div className='flex justify-end pt-4 border-t'>
+              <Button
+                variant='outline'
+                onClick={() => setViewModal({ open: false, designation: null })}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Delete Confirmation Modal */}

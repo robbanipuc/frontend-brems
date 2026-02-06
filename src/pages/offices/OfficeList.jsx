@@ -8,7 +8,7 @@ import {
   BuildingOfficeIcon,
   ChevronRightIcon,
   ChevronDownIcon,
-  UserGroupIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -27,6 +27,7 @@ import {
   SearchInput,
 } from '@/components/common';
 import { getErrorMessage } from '@/utils/helpers';
+import { ZONE_OPTIONS, getZoneLabel, getZoneColor } from '@/constants/zones';
 import toast from 'react-hot-toast';
 
 // Office Tree Item Component
@@ -57,9 +58,9 @@ const OfficeTreeItem = ({
           }`}
         >
           {expanded ? (
-            <ChevronDownIcon className='w-4 h-4 text-gray-500' />
+            <ChevronDownIcon className="w-4 h-4 text-gray-500" />
           ) : (
-            <ChevronRightIcon className='w-4 h-4 text-gray-500' />
+            <ChevronRightIcon className="w-4 h-4 text-gray-500" />
           )}
         </button>
 
@@ -77,26 +78,31 @@ const OfficeTreeItem = ({
         </div>
 
         {/* Office Info */}
-        <div className='flex-1 min-w-0'>
-          <div className='flex items-center gap-2'>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
             <Link
               to={`/offices/${office.id}`}
-              className='font-medium text-gray-900 hover:text-primary-600'
+              className="font-medium text-gray-900 hover:text-primary-600"
             >
               {office.name}
             </Link>
-            <span className='text-sm text-gray-500'>({office.code})</span>
+            <span className="text-sm text-gray-500">({office.code})</span>
+            {office.zone && (
+              <Badge variant={getZoneColor(office.zone)} size="sm">
+                {getZoneLabel(office.zone)}
+              </Badge>
+            )}
           </div>
-          <p className='text-sm text-gray-500'>{office.location}</p>
+          <p className="text-sm text-gray-500">{office.location}</p>
         </div>
 
         {/* Stats */}
-        <div className='flex items-center gap-4'>
-          <div className='text-center'>
-            <p className='text-lg font-semibold text-gray-900'>
+        <div className="flex items-center gap-4">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-gray-900">
               {office.employee_count || 0}
             </p>
-            <p className='text-xs text-gray-500'>Employees</p>
+            <p className="text-xs text-gray-500">Employees</p>
           </div>
           <Badge variant={office.has_admin ? 'success' : 'warning'}>
             {office.has_admin ? 'Has Admin' : 'No Admin'}
@@ -104,14 +110,14 @@ const OfficeTreeItem = ({
         </div>
 
         {/* Actions */}
-        <div className='flex items-center gap-1'>
+        <div className="flex items-center gap-1">
           <Link to={`/offices/${office.id}`}>
-            <Button variant='ghost' size='sm' iconOnly icon={EyeIcon} />
+            <Button variant="ghost" size="sm" iconOnly icon={EyeIcon} />
           </Link>
           {canEdit && (
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               iconOnly
               icon={PencilSquareIcon}
               onClick={() => onEdit(office)}
@@ -119,12 +125,12 @@ const OfficeTreeItem = ({
           )}
           {canDelete && (
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               iconOnly
               icon={TrashIcon}
               onClick={() => onDelete(office)}
-              className='text-red-500 hover:text-red-700'
+              className="text-red-500 hover:text-red-700"
             />
           )}
         </div>
@@ -159,8 +165,9 @@ const OfficeList = () => {
   const [officeTree, setOfficeTree] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('tree'); // 'tree' or 'list'
+  const [viewMode, setViewMode] = useState('tree');
   const [search, setSearch] = useState('');
+  const [zoneFilter, setZoneFilter] = useState('');
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 1024
   );
@@ -181,6 +188,7 @@ const OfficeList = () => {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
+    zone: '',
     location: '',
     parent_id: '',
   });
@@ -190,15 +198,21 @@ const OfficeList = () => {
     fetchOffices();
     fetchOfficeTree();
 
-    // Check if we should open create modal
     if (searchParams.get('action') === 'create') {
       setEditModal({ open: true, office: null });
     }
   }, [searchParams]);
 
+  // Refetch when zone filter changes
+  useEffect(() => {
+    fetchOfficeTree();
+  }, [zoneFilter]);
+
   const fetchOffices = async () => {
     try {
-      const data = await officeService.getAll();
+      const params = {};
+      if (zoneFilter) params.zone = zoneFilter;
+      const data = await officeService.getAll(params);
       setOffices(data);
     } catch (err) {
       console.error('Failed to fetch offices:', err);
@@ -209,7 +223,9 @@ const OfficeList = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await officeService.getTree();
+      const params = {};
+      if (zoneFilter) params.zone = zoneFilter;
+      const data = await officeService.getTree(params);
       setOfficeTree(data);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -222,6 +238,7 @@ const OfficeList = () => {
     setFormData({
       name: office?.name || '',
       code: office?.code || '',
+      zone: office?.zone || '',
       location: office?.location || '',
       parent_id: office?.parent_id || '',
     });
@@ -236,7 +253,6 @@ const OfficeList = () => {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    // Validate
     const errors = {};
     if (!formData.name.trim()) errors.name = 'Name is required';
     if (!formData.code.trim()) errors.code = 'Code is required';
@@ -249,11 +265,17 @@ const OfficeList = () => {
 
     try {
       setSaving(true);
+      const payload = {
+        ...formData,
+        zone: formData.zone || null,
+        parent_id: formData.parent_id || null,
+      };
+
       if (editModal.office) {
-        await officeService.update(editModal.office.id, formData);
+        await officeService.update(editModal.office.id, payload);
         toast.success('Office updated successfully');
       } else {
-        await officeService.create(formData);
+        await officeService.create(payload);
         toast.success('Office created successfully');
       }
       setEditModal({ open: false, office: null });
@@ -284,6 +306,10 @@ const OfficeList = () => {
     }
   };
 
+  const handleZoneFilterChange = (zone) => {
+    setZoneFilter(zone);
+  };
+
   const filteredTree = search
     ? officeTree.filter(
         (office) =>
@@ -292,10 +318,19 @@ const OfficeList = () => {
       )
     : officeTree;
 
+  const filteredOffices = offices.filter((office) => {
+    const matchesSearch =
+      !search ||
+      office.name.toLowerCase().includes(search.toLowerCase()) ||
+      office.code.toLowerCase().includes(search.toLowerCase());
+    const matchesZone = !zoneFilter || office.zone === zoneFilter;
+    return matchesSearch && matchesZone;
+  });
+
   return (
     <div>
       <PageHeader
-        title='Offices'
+        title="Offices"
         subtitle={`${offices.length} offices in the organization`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
@@ -312,8 +347,8 @@ const OfficeList = () => {
 
       {error && (
         <Alert
-          variant='error'
-          className='mb-6'
+          variant="error"
+          className="mb-6"
           dismissible
           onDismiss={() => setError(null)}
         >
@@ -323,25 +358,40 @@ const OfficeList = () => {
 
       <Card>
         {/* Toolbar */}
-        <div className='p-4 border-b border-gray-200 flex items-center justify-between gap-4'>
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder='Search offices...'
-            className='w-64'
-          />
+        <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search offices..."
+              className="w-64"
+            />
+            {/* Zone Filter */}
+            <div className="flex items-center gap-2">
+              <FunnelIcon className="w-5 h-5 text-gray-400" />
+              <Select
+                value={zoneFilter}
+                onChange={(e) => handleZoneFilterChange(e.target.value)}
+                options={[
+                  { value: '', label: 'All Zones' },
+                  ...ZONE_OPTIONS,
+                ]}
+                className="w-48"
+              />
+            </div>
+          </div>
           {!isMobile && (
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2">
               <Button
                 variant={viewMode === 'tree' ? 'primary' : 'outline'}
-                size='sm'
+                size="sm"
                 onClick={() => setViewMode('tree')}
               >
                 Tree View
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'primary' : 'outline'}
-                size='sm'
+                size="sm"
                 onClick={() => setViewMode('list')}
               >
                 List View
@@ -350,20 +400,57 @@ const OfficeList = () => {
           )}
         </div>
 
+        {/* Zone Summary Stats */}
+        <div className="p-4 bg-gray-50 border-b border-gray-200">
+          <div className="flex flex-wrap gap-4">
+            {ZONE_OPTIONS.map((zone) => {
+              const count = offices.filter((o) => o.zone === zone.value).length;
+              return (
+                <button
+                  key={zone.value}
+                  onClick={() =>
+                    setZoneFilter(zoneFilter === zone.value ? '' : zone.value)
+                  }
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                    zoneFilter === zone.value
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  <Badge variant={getZoneColor(zone.value)} size="sm">
+                    {zone.label}
+                  </Badge>
+                  <span className="text-sm font-medium text-gray-700">
+                    {count} offices
+                  </span>
+                </button>
+              );
+            })}
+            {zoneFilter && (
+              <button
+                onClick={() => setZoneFilter('')}
+                className="text-sm text-primary-600 hover:text-primary-700 underline"
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Content */}
         {loading ? (
-          <div className='p-8 text-center'>
-            <div className='animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto' />
-            <p className='mt-4 text-gray-500'>Loading offices...</p>
+          <div className="p-8 text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
+            <p className="mt-4 text-gray-500">Loading offices...</p>
           </div>
         ) : filteredTree.length === 0 ? (
-          <div className='p-8'>
+          <div className="p-8">
             <EmptyState
               icon={BuildingOfficeIcon}
-              title='No offices found'
+              title="No offices found"
               description={
-                search
-                  ? 'Try a different search term'
+                search || zoneFilter
+                  ? 'Try a different search term or filter'
                   : 'Get started by creating your first office'
               }
               actionLabel={
@@ -375,7 +462,7 @@ const OfficeList = () => {
             />
           </div>
         ) : !isMobile && viewMode === 'tree' ? (
-          <div className='divide-y divide-gray-200'>
+          <div className="divide-y divide-gray-200">
             {filteredTree.map((office) => (
               <OfficeTreeItem
                 key={office.id}
@@ -388,75 +475,87 @@ const OfficeList = () => {
             ))}
           </div>
         ) : (
-          <div className='overflow-x-auto'>
-            <table className='min-w-full divide-y divide-gray-200'>
-              <thead className='bg-gray-50'>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
                     Office
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
                     Code
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Zone
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
                     Location
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
                     Parent
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
                     Employees
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
                     Admin
                   </th>
-                  <th className='px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase'>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className='bg-white divide-y divide-gray-200'>
-                {offices.map((office) => (
-                  <tr key={office.id} className='hover:bg-gray-50'>
-                    <td className='px-6 py-4'>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredOffices.map((office) => (
+                  <tr key={office.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
                       <Link
                         to={`/offices/${office.id}`}
-                        className='font-medium text-gray-900 hover:text-primary-600'
+                        className="font-medium text-gray-900 hover:text-primary-600"
                       >
                         {office.name}
                       </Link>
                     </td>
-                    <td className='px-6 py-4 text-sm text-gray-500'>
+                    <td className="px-6 py-4 text-sm text-gray-500">
                       {office.code}
                     </td>
-                    <td className='px-6 py-4 text-sm text-gray-500'>
+                    <td className="px-6 py-4">
+                      {office.zone ? (
+                        <Badge variant={getZoneColor(office.zone)} size="sm">
+                          {getZoneLabel(office.zone)}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
                       {office.location}
                     </td>
-                    <td className='px-6 py-4 text-sm text-gray-500'>
+                    <td className="px-6 py-4 text-sm text-gray-500">
                       {office.parent?.name || '-'}
                     </td>
-                    <td className='px-6 py-4 text-sm text-gray-900'>
+                    <td className="px-6 py-4 text-sm text-gray-900">
                       {office.employees_count || 0}
                     </td>
-                    <td className='px-6 py-4'>
+                    <td className="px-6 py-4">
                       <Badge variant={office.has_admin ? 'success' : 'warning'}>
                         {office.has_admin ? 'Yes' : 'No'}
                       </Badge>
                     </td>
-                    <td className='px-6 py-4 text-right'>
-                      <div className='flex items-center justify-end gap-1'>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <Link to={`/offices/${office.id}`}>
                           <Button
-                            variant='ghost'
-                            size='sm'
+                            variant="ghost"
+                            size="sm"
                             iconOnly
                             icon={EyeIcon}
                           />
                         </Link>
                         {permissions.canEditOffice && (
                           <Button
-                            variant='ghost'
-                            size='sm'
+                            variant="ghost"
+                            size="sm"
                             iconOnly
                             icon={PencilSquareIcon}
                             onClick={() => handleEdit(office)}
@@ -464,12 +563,12 @@ const OfficeList = () => {
                         )}
                         {permissions.canDeleteOffice && (
                           <Button
-                            variant='ghost'
-                            size='sm'
+                            variant="ghost"
+                            size="sm"
                             iconOnly
                             icon={TrashIcon}
                             onClick={() => handleDelete(office)}
-                            className='text-red-500 hover:text-red-700'
+                            className="text-red-500 hover:text-red-700"
                           />
                         )}
                       </div>
@@ -487,55 +586,71 @@ const OfficeList = () => {
         isOpen={editModal.open}
         onClose={() => setEditModal({ open: false, office: null })}
         title={editModal.office ? 'Edit Office' : 'Create Office'}
-        size='md'
+        size="md"
       >
-        <form onSubmit={handleSave} className='space-y-4'>
+        <form onSubmit={handleSave} className="space-y-4">
           <Input
-            label='Office Name'
+            label="Office Name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             error={formErrors.name}
             required
-            placeholder='e.g., Dhaka Division'
+            placeholder="e.g., Dhaka Division"
           />
           <Input
-            label='Office Code'
+            label="Office Code"
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             error={formErrors.code}
             required
-            placeholder='e.g., DHK-DIV'
+            placeholder="e.g., DHK-DIV"
+          />
+          <Select
+            label="Zone"
+            value={formData.zone}
+            onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
+            options={[
+              { value: '', label: 'Select Zone' },
+              ...ZONE_OPTIONS,
+            ]}
+            error={formErrors.zone}
+            helperText="If not selected, will inherit from parent office"
           />
           <Input
-            label='Location'
+            label="Location"
             value={formData.location}
             onChange={(e) =>
               setFormData({ ...formData, location: e.target.value })
             }
             error={formErrors.location}
             required
-            placeholder='e.g., Dhaka, Bangladesh'
+            placeholder="e.g., Dhaka, Bangladesh"
           />
           <Select
-            label='Parent Office'
+            label="Parent Office"
             value={formData.parent_id}
             onChange={(e) =>
               setFormData({ ...formData, parent_id: e.target.value })
             }
-            options={offices
-              .filter((o) => o.id !== editModal.office?.id)
-              .map((o) => ({ value: o.id, label: `${o.name} (${o.code})` }))}
-            placeholder='Select parent office (optional)'
+            options={[
+              { value: '', label: 'No Parent (Root Office)' },
+              ...offices
+                .filter((o) => o.id !== editModal.office?.id)
+                .map((o) => ({
+                  value: o.id,
+                  label: `${o.name} (${o.code})${o.zone ? ` - ${getZoneLabel(o.zone)}` : ''}`,
+                })),
+            ]}
           />
-          <div className='flex justify-end gap-3 pt-4'>
+          <div className="flex justify-end gap-3 pt-4">
             <Button
-              variant='outline'
+              variant="outline"
               onClick={() => setEditModal({ open: false, office: null })}
               disabled={saving}
             >
               Cancel
             </Button>
-            <Button type='submit' loading={saving}>
+            <Button type="submit" loading={saving}>
               {editModal.office ? 'Update' : 'Create'}
             </Button>
           </div>
@@ -547,10 +662,10 @@ const OfficeList = () => {
         isOpen={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, office: null })}
         onConfirm={handleConfirmDelete}
-        title='Delete Office'
+        title="Delete Office"
         message={`Are you sure you want to delete "${deleteModal.office?.name}"? This action cannot be undone.`}
-        confirmText='Delete'
-        variant='danger'
+        confirmText="Delete"
+        variant="danger"
         loading={deleting}
       />
     </div>

@@ -6,6 +6,7 @@ import {
   MapPinIcon,
   PencilSquareIcon,
   UserPlusIcon,
+  GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 import { usePermissions } from '@/hooks/usePermissions';
 import { officeService } from '@/services';
@@ -21,6 +22,7 @@ import {
   Table,
 } from '@/components/common';
 import { formatDate, getErrorMessage } from '@/utils/helpers';
+import { getZoneLabel, getZoneColor } from '@/constants/zones';
 
 const OfficeDetail = () => {
   const { id } = useParams();
@@ -110,7 +112,16 @@ const OfficeDetail = () => {
     <div>
       <PageHeader
         title={office.name}
-        subtitle={office.code}
+        subtitle={
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-gray-500">{office.code}</span>
+            {office.zone && (
+              <Badge variant={getZoneColor(office.zone)}>
+                {getZoneLabel(office.zone)}
+              </Badge>
+            )}
+          </div>
+        }
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Offices', href: '/offices' },
@@ -148,6 +159,22 @@ const OfficeDetail = () => {
               </div>
 
               <div className="pt-4 border-t border-gray-200 space-y-3">
+                {/* Zone */}
+                <div className="flex items-start gap-3">
+                  <GlobeAltIcon className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Zone</p>
+                    {office.zone ? (
+                      <Badge variant={getZoneColor(office.zone)} size="sm">
+                        {getZoneLabel(office.zone)}
+                      </Badge>
+                    ) : (
+                      <p className="text-sm text-gray-500">Not assigned</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Location */}
                 <div className="flex items-start gap-3">
                   <MapPinIcon className="w-5 h-5 text-gray-400 mt-0.5" />
                   <div>
@@ -156,6 +183,7 @@ const OfficeDetail = () => {
                   </div>
                 </div>
 
+                {/* Employees */}
                 <div className="flex items-start gap-3">
                   <UserGroupIcon className="w-5 h-5 text-gray-400 mt-0.5" />
                   <div>
@@ -166,6 +194,7 @@ const OfficeDetail = () => {
                   </div>
                 </div>
 
+                {/* Parent Office */}
                 {office.parent && (
                   <div className="flex items-start gap-3">
                     <BuildingOfficeIcon className="w-5 h-5 text-gray-400 mt-0.5" />
@@ -177,11 +206,21 @@ const OfficeDetail = () => {
                       >
                         {office.parent.name}
                       </Link>
+                      {office.parent.zone && (
+                        <Badge
+                          variant={getZoneColor(office.parent.zone)}
+                          size="sm"
+                          className="ml-2"
+                        >
+                          {getZoneLabel(office.parent.zone)}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
 
+              {/* Admin Status */}
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Admin Status</span>
@@ -191,7 +230,9 @@ const OfficeDetail = () => {
                 </div>
                 {office.admin && (
                   <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-900">{office.admin.name}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {office.admin.name}
+                    </p>
                     <p className="text-xs text-gray-500">{office.admin.email}</p>
                   </div>
                 )}
@@ -215,9 +256,22 @@ const OfficeDetail = () => {
                       >
                         <div>
                           <p className="font-medium text-gray-900">{child.name}</p>
-                          <p className="text-sm text-gray-500">{child.code}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-sm text-gray-500">{child.code}</p>
+                            {child.zone && (
+                              <Badge
+                                variant={getZoneColor(child.zone)}
+                                size="sm"
+                              >
+                                {getZoneLabel(child.zone)}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <Badge variant={child.has_admin ? 'success' : 'warning'} size="sm">
+                        <Badge
+                          variant={child.has_admin ? 'success' : 'warning'}
+                          size="sm"
+                        >
                           {child.has_admin ? 'Admin' : 'No Admin'}
                         </Badge>
                       </Link>
@@ -254,8 +308,14 @@ const OfficeDetail = () => {
                   icon={UserGroupIcon}
                   title="No employees"
                   description="This office has no employees assigned yet"
-                  actionLabel={permissions.canCreateEmployee ? 'Add Employee' : undefined}
-                  onAction={permissions.canCreateEmployee ? () => navigate(`/employees/create?office_id=${office.id}`) : undefined}
+                  actionLabel={
+                    permissions.canCreateEmployee ? 'Add Employee' : undefined
+                  }
+                  onAction={
+                    permissions.canCreateEmployee
+                      ? () => navigate(`/employees/create?office_id=${office.id}`)
+                      : undefined
+                  }
                 />
               </Card.Body>
             )}

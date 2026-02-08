@@ -2,10 +2,20 @@ import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { DATE_FORMATS, STORAGE_BASE_URL } from './constants';
 
 /**
- * Full URL for a storage file (backend). Use for links so /storage/... doesn't hit SPA and 404.
+ * Full URL for a storage file. Handles Cloudinary (public_id with brems/) and local backend /storage/ paths.
  */
 export const getStorageUrl = (path) => {
   if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  if (cloudName && path.includes('brems/')) {
+    const isRaw = path.toLowerCase().endsWith('.pdf') || path.includes('/raw/');
+    const resource = isRaw ? 'raw' : 'image';
+    const cleanPath = path.replace(/^\//, '');
+    return `https://res.cloudinary.com/${cloudName}/${resource}/upload/${cleanPath}`;
+  }
   const base = (STORAGE_BASE_URL || '').replace(/\/$/, '');
   return `${base}/storage/${path.replace(/^\//, '')}`;
 };

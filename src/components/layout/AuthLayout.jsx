@@ -1,12 +1,17 @@
 import { Outlet } from 'react-router-dom';
 import Logo from './Logo';
+import loginBg from '@/assets/images/login-bg.jpg';
 
 const AuthLayout = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary-700 p-12 flex-col justify-between">
-        <div>
+      <div
+        className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between bg-cover bg-center relative"
+        style={{ backgroundImage: `url(${loginBg})` }}
+      >
+        <div className="absolute inset-0 bg-primary-900/70" aria-hidden="true" />
+        <div className="relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <svg
@@ -30,7 +35,7 @@ const AuthLayout = () => {
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-bold text-white leading-tight">
             Employee Management System
           </h2>
@@ -51,7 +56,7 @@ const AuthLayout = () => {
           </div>
         </div>
 
-        <div className="text-primary-200 text-sm">
+        <div className="relative z-10 text-primary-200 text-sm">
           © {new Date().getFullYear()} Bangladesh Railway. All rights reserved.
         </div>
       </div>

@@ -248,19 +248,27 @@ const Sidebar = ({
     );
   };
 
+  // In Sidebar.jsx, update the header section:
+
   const header = (
     <div className='flex items-center justify-between h-16 px-4 border-b border-gray-200 shrink-0'>
       <Logo collapsed={effectiveCollapsed} />
-      {!isMobile && (
+      {!isMobile && !effectiveCollapsed && (
         <button
           onClick={() => setCollapsed(!collapsed)}
           className='p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {effectiveCollapsed ? (
-            <ChevronRightIcon className='w-5 h-5' />
-          ) : (
-            <ChevronLeftIcon className='w-5 h-5' />
-          )}
+          <ChevronLeftIcon className='w-5 h-5' />
+        </button>
+      )}
+      {!isMobile && effectiveCollapsed && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className='absolute -right-3 top-5 bg-white border border-gray-200 rounded-full p-1 shadow-sm hover:bg-gray-50 z-10'
+          title='Expand sidebar'
+        >
+          <ChevronRightIcon className='w-4 h-4 text-gray-600' />
         </button>
       )}
     </div>

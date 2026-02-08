@@ -1,31 +1,34 @@
 import { Link } from 'react-router-dom';
-import clsx from 'clsx';
+import logoImage from '@/assets/images/br-logo.png';
 
-const Logo = ({ collapsed = false, className }) => {
+const Logo = ({ collapsed = false, linkTo = '/dashboard', className = '' }) => {
   return (
-    <Link to="/" className={clsx('flex items-center gap-3', className)}>
-      {/* Logo placeholder - Replace with actual Bangladesh Railway logo */}
-      <div className="flex-shrink-0 w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-        <svg
-          className="w-6 h-6 text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7h8m-8 4h8m-6 4h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"
-          />
-        </svg>
+    <Link
+      to={linkTo}
+      className={`flex items-center gap-3 overflow-hidden group ${className}`}
+      title={collapsed ? 'Bangladesh Railway EMS' : undefined}
+    >
+      <div className='relative'>
+        <img
+          src={logoImage}
+          alt='Bangladesh Railway'
+          className={`object-contain flex-shrink-0 transition-all duration-300 ${
+            collapsed ? 'h-10 w-10' : 'h-12 w-12'
+          }`}
+        />
+        {/* Tooltip for collapsed state */}
+        {collapsed && (
+          <div className='absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50'>
+            Bangladesh Railway EMS
+          </div>
+        )}
       </div>
       {!collapsed && (
-        <div className="flex flex-col">
-          <span className="text-lg font-bold text-gray-900 leading-tight">
+        <div className='flex flex-col min-w-0'>
+          <span className='font-bold text-gray-900 text-sm leading-tight truncate'>
             BREMS
           </span>
-          <span className="text-xs text-gray-500 leading-tight">
+          <span className='text-xs text-gray-500 leading-tight'>
             Bangladesh Railway
           </span>
         </div>

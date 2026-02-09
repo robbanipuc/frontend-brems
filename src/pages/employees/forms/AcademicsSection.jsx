@@ -20,7 +20,7 @@ const AcademicsSection = ({
   const addRecord = () => {
     onChange([
       ...(Array.isArray(data) ? data : []),
-      { exam_name: '', institute: '', passing_year: '', result: '' },
+      { exam_name: '', board: '', institute: '', passing_year: '', result: '' },
     ]);
   };
 
@@ -38,19 +38,41 @@ const AcademicsSection = ({
 
   const handleUploadCertificate = async (index, file) => {
     const record = (Array.isArray(data) ? data : [])[index];
-    if (!record?.id || !employeeId) {
-      toast.error('Save this academic record first to upload a certificate.');
-      return;
-    }
-    
+    if (!employeeId) return;
+
     const key = `${index}`;
     setUploading((u) => ({ ...u, [key]: true }));
-    
+
     try {
+      // New record (no id): verified user only – upload as pending by index
+      if (!record?.id) {
+        if (!isVerifiedUser) {
+          toast.error('Save this academic record first to upload a certificate.');
+          setUploading((u) => ({ ...u, [key]: false }));
+          return;
+        }
+        const response = await fileService.uploadAcademicCertificatePending(
+          employeeId,
+          file,
+          index,
+          record?.exam_name || 'Certificate'
+        );
+        if (response.pending) {
+          onPendingDocumentUpload?.({
+            path: response.path,
+            url: response.url,
+            academic_index: response.academic_index,
+            document_type: response.document_type || `Academic Certificate: ${record?.exam_name || 'Certificate'}`,
+          });
+          toast.success('Certificate uploaded. Will be submitted with your profile changes.');
+        }
+        setUploading((u) => ({ ...u, [key]: false }));
+        return;
+      }
+
+      // Existing record
       const response = await fileService.uploadAcademicCertificate(employeeId, record.id, file);
-      
       if (response.pending && isVerifiedUser) {
-        // Track as pending document
         onPendingDocumentUpload?.({
           path: response.path,
           url: response.url,
@@ -108,7 +130,9 @@ const AcademicsSection = ({
       
       <div className='space-y-4'>
         {list.map((record, index) => {
-          const pendingDoc = getPendingDocumentFor?.(null, record.id);
+          const pendingDoc = record.id
+            ? getPendingDocumentFor?.(null, record.id)
+            : getPendingDocumentFor?.(null, null, null, index);
           const hasCurrentCert = !!record.certificate_path;
           const hasPendingCert = !!pendingDoc;
 
@@ -125,6 +149,14 @@ const AcademicsSection = ({
                   options={EXAM_NAMES}
                   placeholder='Select exam'
                 />
+                {(record.exam_name === 'SSC / Dakhil' || record.exam_name === 'HSC / Alim') && (
+                  <Input
+                    label='Board'
+                    value={record.board ?? ''}
+                    onChange={(e) => updateRecord(index, 'board', e.target.value)}
+                    placeholder='e.g., Dhaka, Comilla'
+                  />
+                )}
                 <Input
                   label='Institute'
                   value={record.institute}
@@ -145,8 +177,8 @@ const AcademicsSection = ({
                 />
               </div>
 
-              {/* Certificate upload for existing academic records */}
-              {employeeId && record.id && (
+              {/* Certificate upload: existing records always; new records for verified user */}
+              {employeeId && (record.id || isVerifiedUser) && (
                 <div className='pt-2 border-t border-gray-100'>
                   <div className='flex items-center justify-between mb-2'>
                     <h4 className='text-sm font-medium text-gray-700'>
@@ -220,7 +252,7 @@ const AcademicsSection = ({
                 </div>
               )}
               
-              {!record.id && (
+              {!record.id && !isVerifiedUser && (
                 <p className='text-xs text-gray-500'>
                   Save your profile to upload a certificate for new entries.
                 </p>

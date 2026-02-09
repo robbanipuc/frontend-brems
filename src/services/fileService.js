@@ -39,12 +39,26 @@ const fileService = {
     return response.data;
   },
 
-  // Upload academic certificate
+  // Upload academic certificate (existing record)
   async uploadAcademicCertificate(employeeId, academicId, file, onProgress) {
     const formData = new FormData();
     formData.append('certificate', file);
     const response = await apiUpload(
       `/employees/${employeeId}/academics/${academicId}/certificate`,
+      formData,
+      onProgress
+    );
+    return response.data;
+  },
+
+  // Upload academic certificate for new (not yet saved) record - verified user; applied when profile request is approved
+  async uploadAcademicCertificatePending(employeeId, file, academicIndex, examName = 'Certificate', onProgress) {
+    const formData = new FormData();
+    formData.append('certificate', file);
+    formData.append('academic_index', String(academicIndex));
+    if (examName) formData.append('exam_name', examName);
+    const response = await apiUpload(
+      `/employees/${employeeId}/academics/pending-certificate`,
       formData,
       onProgress
     );

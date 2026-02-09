@@ -50,6 +50,9 @@ const AcademicsTab = ({ employee }) => {
                   <h4 className='font-medium text-gray-900'>
                     {record.exam_name}
                   </h4>
+                  {(record.exam_name === 'SSC / Dakhil' || record.exam_name === 'HSC / Alim') && record.board && (
+                    <p className='text-sm text-gray-500'>Board: {record.board}</p>
+                  )}
                   <p className='text-sm text-gray-600'>{record.institute}</p>
                 </div>
               </div>

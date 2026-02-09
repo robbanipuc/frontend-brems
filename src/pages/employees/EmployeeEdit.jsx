@@ -167,6 +167,7 @@ const EmployeeEdit = () => {
     const academics = (emp.academics || []).map((a) => ({
       id: a.id,
       exam_name: a.exam_name || '',
+      board: a.board || '',
       institute: a.institute || '',
       passing_year: a.passing_year || '',
       result: a.result || '',
@@ -239,10 +240,11 @@ const EmployeeEdit = () => {
   const handlePendingDocumentUpload = (docInfo) => {
     // docInfo: { path, url, field?, academic_id?, family_member_id?, document_type }
     setPendingDocuments((prev) => {
-      // Remove existing document for same field/academic/family if re-uploading
+      // Remove existing document for same field/academic/family/index if re-uploading
       const filtered = prev.filter((d) => {
         if (docInfo.field && d.field === docInfo.field) return false;
-        if (docInfo.academic_id && d.academic_id === docInfo.academic_id) return false;
+        if (docInfo.academic_id != null && d.academic_id === docInfo.academic_id) return false;
+        if (docInfo.academic_index != null && d.academic_index === docInfo.academic_index) return false;
         if (docInfo.family_member_id && d.family_member_id === docInfo.family_member_id) return false;
         return true;
       });
@@ -266,12 +268,13 @@ const EmployeeEdit = () => {
     toast.success('Pending document removed');
   };
 
-  // Check if there's a pending upload for a specific field
-  const getPendingDocumentFor = (field, academicId = null, familyMemberId = null) => {
+  // Check if there's a pending upload for a specific field / academic / new academic by index
+  const getPendingDocumentFor = (field, academicId = null, familyMemberId = null, academicIndex = null) => {
     return pendingDocuments.find((d) => {
       if (field && d.field === field) return true;
-      if (academicId && d.academic_id === academicId) return true;
+      if (academicId != null && d.academic_id === academicId) return true;
       if (familyMemberId && d.family_member_id === familyMemberId) return true;
+      if (academicIndex != null && d.academic_index === academicIndex) return true;
       return false;
     });
   };
@@ -291,7 +294,8 @@ const EmployeeEdit = () => {
           proposedChanges.pending_documents = pendingDocuments.map((doc) => ({
             path: doc.path,
             field: doc.field || undefined,
-            academic_id: doc.academic_id || undefined,
+            academic_id: doc.academic_id ?? undefined,
+            academic_index: doc.academic_index ?? undefined,
             family_member_id: doc.family_member_id || undefined,
             document_type: doc.document_type,
           }));

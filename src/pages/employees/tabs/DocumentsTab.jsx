@@ -133,10 +133,11 @@ const DocumentCard = ({
   );
 };
 
-const DocumentsTab = ({ employee, onUpdate, canManage, canUpload }) => {
+const DocumentsTab = ({ employee, onUpdate, canManage, canUpload, verifiedOnly }) => {
   const [uploading, setUploading] = useState({});
-  const pending = employee.pending_documents || {};
-  const allowUpload = canUpload ?? canManage;
+  // In employee portal (verifiedOnly), show only verified documents; no pending, no upload
+  const pending = verifiedOnly ? {} : (employee.pending_documents || {});
+  const allowUpload = verifiedOnly ? false : (canUpload ?? canManage);
 
   const handleUpload = async (type, file) => {
     try {
@@ -175,7 +176,15 @@ const DocumentsTab = ({ employee, onUpdate, canManage, canUpload }) => {
 
   return (
     <div className='p-6'>
-      <h3 className='text-lg font-semibold text-gray-900 mb-6'>Documents</h3>
+      <h3 className='text-lg font-semibold text-gray-900 mb-1'>Documents</h3>
+      {verifiedOnly ? (
+        <p className='text-sm text-gray-500 mb-6'>
+          Only verified documents are shown. To add or update documents, use{' '}
+          <strong>Edit Profile</strong>.
+        </p>
+      ) : (
+        <div className='mb-6' />
+      )}
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {/* Profile Photo */}
@@ -235,11 +244,11 @@ const DocumentsTab = ({ employee, onUpdate, canManage, canUpload }) => {
             />
           ) : allowUpload ? (
             <FileUpload
-              accept='application/pdf,image/jpeg,image/jpg,image/png'
+              accept='image/jpeg,image/jpg,image/png'
               maxSize={5 * 1024 * 1024}
               onChange={(file) => handleUpload('nid', file)}
               uploading={uploading.nid}
-              hint='PDF, JPG, PNG up to 5MB'
+              hint='Images only (JPG, PNG) up to 5MB'
             />
           ) : (
             <DocumentCard title='NID Document' path={null} />
@@ -269,11 +278,11 @@ const DocumentsTab = ({ employee, onUpdate, canManage, canUpload }) => {
             />
           ) : allowUpload ? (
             <FileUpload
-              accept='application/pdf,image/jpeg,image/jpg,image/png'
+              accept='image/jpeg,image/jpg,image/png'
               maxSize={5 * 1024 * 1024}
               onChange={(file) => handleUpload('birth', file)}
               uploading={uploading.birth}
-              hint='PDF, JPG, PNG up to 5MB'
+              hint='Images only (JPG, PNG) up to 5MB'
             />
           ) : (
             <DocumentCard title='Birth Certificate' path={null} />
@@ -281,36 +290,42 @@ const DocumentsTab = ({ employee, onUpdate, canManage, canUpload }) => {
         </div>
       </div>
 
-      {/* Academic Certificates */}
-      {employee.academics?.length > 0 && (
-        <div className='mt-8'>
-          <h4 className='text-sm font-medium text-gray-700 mb-3'>
-            Academic Certificates
-          </h4>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-            {employee.academics.map((academic, index) => {
-              const pendingKey = 'academic_' + academic.id;
-              const pendingDoc = pending[pendingKey];
-              const path = academic.certificate_path || pendingDoc?.file_path;
-              return (
-                <DocumentCard
-                  key={academic.id}
-                  title={`${academic.exam_name} Certificate`}
-                  path={path}
-                  type={`academic_${academic.id}`}
-                  onDelete={() =>
-                    fileService
-                      .deleteAcademicCertificate(employee.id, academic.id)
-                      .then(onUpdate)
-                  }
-                  canManage={canManage}
-                  isPending={!!pendingDoc}
-                />
-              );
-            })}
+      {/* Academic Certificates: when verifiedOnly, only list those with verified certificate */}
+      {(() => {
+        const academics = verifiedOnly
+          ? (employee.academics || []).filter((a) => a.certificate_path)
+          : (employee.academics || []);
+        if (academics.length === 0) return null;
+        return (
+          <div className='mt-8'>
+            <h4 className='text-sm font-medium text-gray-700 mb-3'>
+              Academic Certificates
+            </h4>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+              {academics.map((academic) => {
+                const pendingKey = 'academic_' + academic.id;
+                const pendingDoc = pending[pendingKey];
+                const path = academic.certificate_path || pendingDoc?.file_path;
+                return (
+                  <DocumentCard
+                    key={academic.id}
+                    title={`${academic.exam_name} Certificate`}
+                    path={path}
+                    type={`academic_${academic.id}`}
+                    onDelete={() =>
+                      fileService
+                        .deleteAcademicCertificate(employee.id, academic.id)
+                        .then(onUpdate)
+                    }
+                    canManage={canManage}
+                    isPending={!!pendingDoc}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

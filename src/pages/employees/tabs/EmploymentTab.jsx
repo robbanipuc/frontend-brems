@@ -26,7 +26,7 @@ const EmploymentTab = ({ employee }) => {
             <div className="flex justify-between">
               <dt className="text-gray-500">Basic Salary:</dt>
               <dd className="text-gray-900 font-medium">
-                {formatCurrency(employee.designation?.basic_salary)}
+                {employee.designation?.salary_range ? `৳${employee.designation.salary_range}` : '-'}
               </dd>
             </div>
           </dl>

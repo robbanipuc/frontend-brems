@@ -119,7 +119,7 @@ const PromotionModal = ({ isOpen, onClose, employee, onSuccess }) => {
             <p className="mt-1 font-medium text-gray-900">{employee?.designation?.title || 'N/A'}</p>
             <p className="text-sm text-gray-500">
               Grade: {employee?.designation?.grade || 'N/A'} • 
-              Salary: {formatCurrency(employee?.designation?.basic_salary)}
+              Salary: {employee?.designation?.salary_range ? `৳${employee.designation.salary_range}` : '-'}
             </p>
           </div>
 
@@ -129,7 +129,7 @@ const PromotionModal = ({ isOpen, onClose, employee, onSuccess }) => {
               <p className="mt-1 font-medium text-green-900">{selectedDesignation.title}</p>
               <p className="text-sm text-green-700">
                 Grade: {selectedDesignation.grade} • 
-                Salary: {formatCurrency(selectedDesignation.basic_salary)}
+                Salary: {selectedDesignation?.salary_range ? `৳${selectedDesignation.salary_range}` : '-'}
               </p>
             </div>
           )}

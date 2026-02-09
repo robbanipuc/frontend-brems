@@ -225,7 +225,8 @@ const EmployeeDetail = ({
           employee={employee}
           onUpdate={refreshEmployee}
           canManage={canManage}
-          canUpload={canManage || isOwnProfile}
+          canUpload={isMyProfilePage ? false : (canManage || isOwnProfile)}
+          verifiedOnly={isMyProfilePage}
         />
       ),
     },
@@ -345,14 +346,17 @@ const EmployeeDetail = ({
               <div className='text-center p-3 sm:p-4 bg-gray-50 rounded-lg min-w-0'>
                 <p
                   className='text-lg sm:text-2xl font-bold text-gray-900 truncate'
-                  title={formatCurrency(
-                    employee.designation?.basic_salary,
-                    false
-                  )}
+                  title={
+                    employee.designation?.salary_range
+                      ? `৳${employee.designation.salary_range}`
+                      : '-'
+                  }
                 >
-                  {formatCurrency(employee.designation?.basic_salary, false)}
+                  {employee.designation?.salary_range
+                    ? `৳${employee.designation.salary_range}`
+                    : '-'}
                 </p>
-                <p className='text-xs text-gray-500'>Basic Salary</p>
+                <p className='text-xs text-gray-500'>Salary Range</p>
               </div>
               <div className='text-center p-3 sm:p-4 bg-gray-50 rounded-lg min-w-0'>
                 <p className='text-lg sm:text-2xl font-bold text-gray-900'>

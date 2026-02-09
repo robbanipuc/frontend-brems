@@ -187,18 +187,14 @@ const DocumentsSection = ({
         {/* Upload section */}
         <div className='space-y-2'>
           <FileUpload
-            accept={
-              type === 'profile_picture'
-                ? 'image/jpeg,image/jpg,image/png'
-                : 'application/pdf,image/jpeg,image/jpg,image/png'
-            }
+            accept='image/jpeg,image/jpg,image/png'
             maxSize={type === 'profile_picture' ? 2 * 1024 * 1024 : 5 * 1024 * 1024}
             onChange={(file) => handleUpload(type, file)}
             uploading={uploading[type]}
             hint={
               type === 'profile_picture'
                 ? 'JPG, PNG up to 2MB'
-                : 'PDF, JPG, PNG up to 5MB'
+                : 'Images only (JPG, PNG) up to 5MB'
             }
             label={hasPendingDoc ? 'Replace pending upload' : hasCurrentDoc ? 'Replace document' : 'Upload document'}
           />

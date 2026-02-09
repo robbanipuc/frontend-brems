@@ -7,7 +7,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useDebounce } from '@/hooks/useDebounce';
-import { profileRequestService } from '@/services';
+import { profileRequestService, officeService } from '@/services';
 import {
   PageHeader,
   Card,
@@ -18,6 +18,7 @@ import {
   Alert,
   EmptyState,
   Pagination,
+  Select,
 } from '@/components/common';
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants';
 import { formatDate, getFullName, getErrorMessage } from '@/utils/helpers';
@@ -30,6 +31,8 @@ const ProfileRequestList = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const debouncedSearch = useDebounce(search, 300);
+  const [officeId, setOfficeId] = useState(searchParams.get('office_id') || '');
+  const [offices, setOffices] = useState([]);
   const [page, setPage] = useState(
     parseInt(searchParams.get('page') || '1', 10)
   );
@@ -38,9 +41,17 @@ const ProfileRequestList = () => {
     per_page: DEFAULT_PAGE_SIZE,
   });
 
+  const isSuperAdmin = permissions.isSuperAdmin?.() ?? false;
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      officeService.getAll().then((res) => setOffices(res.data ?? res ?? [])).catch(() => setOffices([]));
+    }
+  }, [isSuperAdmin]);
+
   useEffect(() => {
     fetchRequests();
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, officeId]);
 
   const fetchRequests = async () => {
     try {
@@ -48,6 +59,7 @@ const ProfileRequestList = () => {
       setError(null);
       const params = { page, per_page: DEFAULT_PAGE_SIZE };
       if (debouncedSearch) params.search = debouncedSearch;
+      if (isSuperAdmin && officeId) params.office_id = officeId;
       const data = await profileRequestService.getAll(params);
       const list = data.data ?? data;
       setRequests(Array.isArray(list) ? list : []);
@@ -77,6 +89,13 @@ const ProfileRequestList = () => {
     setSearch(value);
     setPage(1);
     updateParams({ search: value || undefined, page: '1' });
+  };
+
+  const handleOfficeChange = (e) => {
+    const val = e.target.value;
+    setOfficeId(val);
+    setPage(1);
+    updateParams({ office_id: val || undefined, page: '1' });
   };
 
   const columns = [
@@ -161,6 +180,21 @@ const ProfileRequestList = () => {
             placeholder='Search by ID, employee name, type, or details...'
             className='max-w-xs'
           />
+          {isSuperAdmin && (
+            <Select
+              placeholder='All offices'
+              options={[
+                { value: '', label: 'All offices' },
+                ...(offices || []).map((off) => ({
+                  value: String(off.id),
+                  label: off.name,
+                })),
+              ]}
+              value={officeId}
+              onChange={handleOfficeChange}
+              className='min-w-[180px]'
+            />
+          )}
           <Button
             variant='outline'
             size='sm'
@@ -183,7 +217,7 @@ const ProfileRequestList = () => {
           <div className='p-12 text-center text-gray-500'>
             Loading requests...
           </div>
-        ) : !data?.length ? (
+        ) : !requests?.length ? (
           <EmptyState
             icon={DocumentCheckIcon}
             title='No profile requests'
@@ -191,7 +225,7 @@ const ProfileRequestList = () => {
           />
         ) : (
           <>
-            <Table columns={columns} data={data} />
+            <Table columns={columns} data={requests} />
             {pagination?.last_page > 1 && (
               <div className='p-4 border-t border-gray-200'>
                 <Pagination

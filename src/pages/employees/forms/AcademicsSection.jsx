@@ -210,11 +210,11 @@ const AcademicsSection = ({
 
                   {/* Upload new certificate */}
                   <FileUpload
-                    accept='application/pdf,image/jpeg,image/jpg,image/png'
+                    accept='image/jpeg,image/jpg,image/png'
                     maxSize={5 * 1024 * 1024}
                     onChange={(file) => handleUploadCertificate(index, file)}
                     uploading={uploading[`${index}`]}
-                    hint='PDF, JPG, PNG up to 5MB'
+                    hint='Images only (JPG, PNG) up to 5MB'
                     label={hasPendingCert || hasCurrentCert ? 'Replace certificate' : 'Upload certificate'}
                   />
                 </div>

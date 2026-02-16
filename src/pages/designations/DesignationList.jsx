@@ -6,7 +6,7 @@ import {
   EyeIcon,
 } from '@heroicons/react/24/outline';
 import { usePermissions } from '@/hooks/usePermissions';
-import { designationService } from '@/services';
+import { designationService, officeService } from '@/services';
 import {
   PageHeader,
   Card,
@@ -16,6 +16,7 @@ import {
   Alert,
   Modal,
   Input,
+  Select,
   Textarea,
   ConfirmModal,
   SearchInput,
@@ -27,9 +28,11 @@ const DesignationList = () => {
   const permissions = usePermissions();
 
   const [designations, setDesignations] = useState([]);
+  const [offices, setOffices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
+  const [officeFilter, setOfficeFilter] = useState('');
 
   // Modal states
   const [editModal, setEditModal] = useState({
@@ -49,6 +52,7 @@ const DesignationList = () => {
 
   // Form data
   const [formData, setFormData] = useState({
+    office_id: '',
     title: '',
     title_bn: '',
     grade: '',
@@ -60,14 +64,29 @@ const DesignationList = () => {
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    fetchDesignations();
+    fetchOffices();
   }, []);
+
+  useEffect(() => {
+    fetchDesignations();
+  }, [officeFilter]);
+
+  const fetchOffices = async () => {
+    try {
+      const data = await officeService.getManaged();
+      setOffices(data);
+    } catch (err) {
+      console.error('Failed to fetch offices:', err);
+    }
+  };
 
   const fetchDesignations = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await designationService.getAll({ sort_by_grade: true });
+      const params = { sort_by_grade: true };
+      if (officeFilter) params.office_id = officeFilter;
+      const data = await designationService.getAll(params);
       setDesignations(data);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -78,6 +97,7 @@ const DesignationList = () => {
 
   const handleEdit = (designation) => {
     setFormData({
+      office_id: designation?.office_id ?? '',
       title: designation?.title || '',
       title_bn: designation?.title_bn || '',
       grade: designation?.grade || '',
@@ -125,7 +145,11 @@ const DesignationList = () => {
     if (/^\d+$/.test(grade)) {
       grade = `Grade-${grade}`;
     }
-    const payload = { ...formData, grade };
+    const payload = {
+      ...formData,
+      grade,
+      office_id: formData.office_id || null,
+    };
 
     try {
       setSaving(true);
@@ -190,6 +214,18 @@ const DesignationList = () => {
             </p>
           )}
         </div>
+      ),
+    },
+    {
+      key: 'office',
+      header: 'Office',
+      sortable: false,
+      render: (_, designation) => (
+        <span className='text-sm text-gray-600'>
+          {designation.office
+            ? `${designation.office.name} (${designation.office.code})`
+            : 'All offices'}
+        </span>
       ),
     },
     {
@@ -288,14 +324,34 @@ const DesignationList = () => {
       )}
 
       <Card>
-        {/* Search */}
-        <div className='p-4 border-b border-gray-200'>
+        {/* Search and filters */}
+        <div className='p-4 border-b border-gray-200 flex flex-col sm:flex-row gap-4 sm:items-center'>
           <SearchInput
             value={search}
             onChange={setSearch}
             placeholder='Search designations...'
             className='w-64'
           />
+          <Select
+            label='Office'
+            value={officeFilter}
+            onChange={(e) => setOfficeFilter(e.target.value)}
+            options={[
+              { value: '', label: 'All offices' },
+              ...offices.map((o) => ({ value: o.id, label: `${o.name} (${o.code})` })),
+            ]}
+            placeholder='All offices'
+            className='sm:w-56'
+          />
+          {officeFilter && (
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={() => setOfficeFilter('')}
+            >
+              Clear filter
+            </Button>
+          )}
         </div>
 
         {/* Table */}
@@ -318,6 +374,21 @@ const DesignationList = () => {
         size='lg'
       >
         <form onSubmit={handleSave} className='space-y-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <Select
+              label='Office (optional – leave empty for all offices)'
+              value={formData.office_id}
+              onChange={(e) =>
+                setFormData({ ...formData, office_id: e.target.value })
+              }
+              options={offices.map((o) => ({
+                value: o.id,
+                label: `${o.name} (${o.code})`,
+              }))}
+              placeholder='All offices'
+            />
+            <div />
+          </div>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Input
               label='Title (English)'
@@ -467,6 +538,16 @@ const DesignationList = () => {
                 </label>
                 <p className='mt-1 text-gray-900'>
                   {viewModal.designation.employees_count || 0}
+                </p>
+              </div>
+              <div>
+                <label className='text-sm font-medium text-gray-500'>
+                  Office
+                </label>
+                <p className='mt-1 text-gray-900'>
+                  {viewModal.designation.office
+                    ? `${viewModal.designation.office.name} (${viewModal.designation.office.code})`
+                    : 'All offices'}
                 </p>
               </div>
             </div>

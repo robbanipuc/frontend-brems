@@ -50,8 +50,15 @@ const EmployeeCreate = () => {
 
   useEffect(() => {
     fetchOffices();
-    fetchDesignations();
   }, []);
+
+  useEffect(() => {
+    if (formData.office_id) {
+      fetchDesignationsByOffice(formData.office_id);
+    } else {
+      setDesignations([]);
+    }
+  }, [formData.office_id]);
 
   const fetchOffices = async () => {
     try {
@@ -62,18 +69,27 @@ const EmployeeCreate = () => {
     }
   };
 
-  const fetchDesignations = async () => {
+  const fetchDesignationsByOffice = async (officeId) => {
+    if (!officeId) return;
     try {
-      const data = await designationService.getAll();
+      const data = await designationService.getAll({ office_id: officeId });
       setDesignations(data);
     } catch (err) {
       console.error('Failed to fetch designations:', err);
+      setDesignations([]);
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      // When office changes, clear designation so user must pick one valid for the new office
+      if (name === 'office_id') {
+        next.designation_id = '';
+      }
+      return next;
+    });
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
@@ -280,20 +296,7 @@ const EmployeeCreate = () => {
             <Card.Body>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Select
-                  label="Designation"
-                  name="designation_id"
-                  value={formData.designation_id}
-                  onChange={handleChange}
-                  options={designations.map(d => ({ 
-                    value: d.id, 
-                    label: `${d.title} (Grade: ${d.grade})` 
-                  }))}
-                  error={errors.designation_id}
-                  required
-                  placeholder="Select designation"
-                />
-                <Select
-                  label="Office"
+                  label="Office *"
                   name="office_id"
                   value={formData.office_id}
                   onChange={handleChange}
@@ -303,7 +306,21 @@ const EmployeeCreate = () => {
                   }))}
                   error={errors.office_id}
                   required
-                  placeholder="Select office"
+                  placeholder="Select office first"
+                />
+                <Select
+                  label="Designation *"
+                  name="designation_id"
+                  value={formData.designation_id}
+                  onChange={handleChange}
+                  options={designations.map(d => ({ 
+                    value: d.id, 
+                    label: `${d.title} (Grade: ${d.grade})` 
+                  }))}
+                  error={errors.designation_id}
+                  required
+                  placeholder={formData.office_id ? 'Select designation' : 'Select office first'}
+                  disabled={!formData.office_id}
                 />
                 <Select
                   label="Cadre / Non-cadre"

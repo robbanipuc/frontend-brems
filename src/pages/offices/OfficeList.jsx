@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   PlusIcon,
   EyeIcon,
@@ -212,6 +212,7 @@ const countOfficesByZone = (offices, zone) => {
 const OfficeList = () => {
   const { isSuperAdmin } = useAuth();
   const permissions = usePermissions();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [offices, setOffices] = useState([]);
@@ -274,15 +275,19 @@ const OfficeList = () => {
   };
 
   const handleEdit = (office) => {
+    if (office?.id) {
+      navigate(`/offices/${office.id}/edit`);
+      return;
+    }
     setFormData({
-      name: office?.name || '',
-      code: office?.code || '',
-      zone: office?.zone || '',
-      location: office?.location || '',
-      parent_id: office?.parent_id || '',
+      name: '',
+      code: '',
+      zone: '',
+      location: '',
+      parent_id: '',
     });
     setFormErrors({});
-    setEditModal({ open: true, office });
+    setEditModal({ open: true, office: null });
   };
 
   const handleDelete = (office) => {

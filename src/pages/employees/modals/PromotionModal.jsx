@@ -34,7 +34,10 @@ const PromotionModal = ({ isOpen, onClose, employee, onSuccess }) => {
 
   const fetchDesignations = async () => {
     try {
-      const data = await designationService.getAll({ sort_by_grade: true });
+      const officeId = employee?.current_office_id || employee?.office?.id;
+      const params = { sort_by_grade: true };
+      if (officeId) params.office_id = officeId;
+      const data = await designationService.getAll(params);
       // Filter out current designation
       const filteredDesignations = data.filter(d => d.id !== employee?.designation_id);
       setDesignations(filteredDesignations);

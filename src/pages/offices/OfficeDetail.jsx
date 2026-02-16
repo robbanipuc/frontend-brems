@@ -132,7 +132,7 @@ const OfficeDetail = () => {
             <Button
               variant="outline"
               icon={PencilSquareIcon}
-              onClick={() => navigate(`/offices?action=edit&id=${office.id}`)}
+              onClick={() => navigate(`/offices/${office.id}/edit`)}
             >
               Edit Office
             </Button>

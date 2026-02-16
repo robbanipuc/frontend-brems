@@ -133,6 +133,7 @@ const Sidebar = ({
         { name: 'Transfer Report', href: '/reports/transfers' },
         { name: 'Promotion Report', href: '/reports/promotions' },
         { name: 'Office Report', href: '/reports/offices' },
+        { name: 'Vacant Posts', href: '/reports/vacant-posts' },
       ],
     },
   ];

@@ -44,6 +44,20 @@ const officeService = {
     const response = await api.delete(`/offices/${id}`);
     return response.data;
   },
+
+  // Vacant posts (sanctioned strength) report for an office
+  async getVacantPosts(officeId) {
+    const response = await api.get(`/offices/${officeId}/vacant-posts`);
+    return response.data;
+  },
+
+  // Update sanctioned posts (total_posts) per designation for an office
+  async updateDesignationPosts(officeId, posts) {
+    const response = await api.put(`/offices/${officeId}/designation-posts`, {
+      posts,
+    });
+    return response.data;
+  },
 };
 
 export default officeService;

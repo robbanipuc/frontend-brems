@@ -27,6 +27,7 @@ import ReleasedEmployees from '@/pages/employees/ReleasedEmployees';
 // Offices
 import OfficeList from '@/pages/offices/OfficeList';
 import OfficeDetail from '@/pages/offices/OfficeDetail';
+import OfficeEdit from '@/pages/offices/OfficeEdit';
 
 // Designations
 import DesignationList from '@/pages/designations/DesignationList';
@@ -53,6 +54,7 @@ import EmployeeReport from '@/pages/reports/EmployeeReport';
 import TransferReport from '@/pages/reports/TransferReport';
 import PromotionReport from '@/pages/reports/PromotionReport';
 import OfficeReport from '@/pages/reports/OfficeReport';
+import VacantPostsReport from '@/pages/reports/VacantPostsReport';
 
 // Profile & Settings
 import MyProfile from '@/pages/profile/MyProfile';
@@ -131,6 +133,7 @@ const AppRoutes = () => {
         <Route path='/offices'>
           <Route index element={<OfficeList />} />
           <Route path=':id' element={<OfficeDetail />} />
+          <Route path=':id/edit' element={<OfficeEdit />} />
         </Route>
 
         {/* Designations */}
@@ -233,6 +236,14 @@ const AppRoutes = () => {
             element={
               <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
                 <OfficeReport />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path='vacant-posts'
+            element={
+              <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
+                <VacantPostsReport />
               </RoleRoute>
             }
           />

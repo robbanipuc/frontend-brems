@@ -107,6 +107,18 @@ export const MARITAL_STATUS_OPTIONS = [
   { value: 'Widowed', label: 'Widowed' },
 ];
 
+// Punishment Types (must match backend Punishment::TYPES)
+export const PUNISHMENT_TYPES = [
+  { value: 'dismissal', label: 'Dismissal (চাকরি থেকে বরখাস্তকরণ)' },
+  { value: 'removal', label: 'Removal (অপসারণ)' },
+  { value: 'reduction_to_lower_grade', label: 'Reduction to a lower grade (পদাবনতি)' },
+  { value: 'compulsory_retirement', label: 'Compulsory Retirement (বাধ্যতামূলক অবসর)' },
+  { value: 'censure', label: 'Censure (তিরস্কার)' },
+  { value: 'withholding_increment', label: 'Withholding of increment (বেতনবৃদ্ধি স্থগিতকরণ)' },
+  { value: 'withholding_promotion', label: 'Withholding of promotion (পদোন্নতি স্থগিতকরণ)' },
+  { value: 'recovery_from_pay', label: 'Recovery from pay (আর্থিক ক্ষতিপূরণ)' },
+];
+
 // Cadre / Non-cadre Options
 export const CADRE_OPTIONS = [
   { value: 'cadre', label: 'Cadre' },

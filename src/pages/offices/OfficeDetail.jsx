@@ -7,6 +7,8 @@ import {
   PencilSquareIcon,
   UserPlusIcon,
   GlobeAltIcon,
+  DocumentArrowDownIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import { usePermissions } from '@/hooks/usePermissions';
 import { officeService } from '@/services';
@@ -23,6 +25,7 @@ import {
 } from '@/components/common';
 import { formatDate, getErrorMessage } from '@/utils/helpers';
 import { getZoneLabel, getZoneColor } from '@/constants/zones';
+import toast from 'react-hot-toast';
 
 const OfficeDetail = () => {
   const { id } = useParams();
@@ -32,6 +35,8 @@ const OfficeDetail = () => {
   const [office, setOffice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
 
   useEffect(() => {
     fetchOffice();
@@ -79,6 +84,30 @@ const OfficeDetail = () => {
       </div>
     );
   }
+
+  const handleExportPdf = async () => {
+    try {
+      setExportingPdf(true);
+      await officeService.exportOfficePdf(id);
+      toast.success('PDF downloaded');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    try {
+      setExportingCsv(true);
+      await officeService.exportOfficeCsv(id);
+      toast.success('CSV downloaded');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setExportingCsv(false);
+    }
+  };
 
   const employeeColumns = [
     {
@@ -128,15 +157,35 @@ const OfficeDetail = () => {
           { label: office.name },
         ]}
         actions={
-          permissions.canEditOffice && (
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant="outline"
-              icon={PencilSquareIcon}
-              onClick={() => navigate(`/offices/${office.id}/edit`)}
+              size="sm"
+              icon={DocumentArrowDownIcon}
+              onClick={handleExportPdf}
+              loading={exportingPdf}
             >
-              Edit Office
+              Export PDF
             </Button>
-          )
+            <Button
+              variant="outline"
+              size="sm"
+              icon={ArrowDownTrayIcon}
+              onClick={handleExportCsv}
+              loading={exportingCsv}
+            >
+              Export CSV
+            </Button>
+            {permissions.canEditOffice && (
+              <Button
+                variant="outline"
+                icon={PencilSquareIcon}
+                onClick={() => navigate(`/offices/${office.id}/edit`)}
+              >
+                Edit Office
+              </Button>
+            )}
+          </div>
         }
       />
 

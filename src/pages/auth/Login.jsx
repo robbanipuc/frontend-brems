@@ -7,10 +7,12 @@ import {
   LockClosedIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { Button, Input, Alert } from '@/components/common';
 
 const Login = () => {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,7 +32,7 @@ const Login = () => {
     setError('');
 
     if (!formData.email || !formData.password) {
-      setError('Please enter both email and password');
+      setError(t('auth.pleaseEnterBoth'));
       return;
     }
 
@@ -38,7 +40,7 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
 
     if (!result.success) {
-      setError(result.error || 'Login failed');
+      setError(result.error || t('auth.loginFailed'));
     }
     setLoading(false);
   };
@@ -46,9 +48,9 @@ const Login = () => {
   return (
     <div>
       <div className='text-center mb-8'>
-        <h2 className='text-3xl font-bold text-gray-900'>Welcome back</h2>
+        <h2 className='text-3xl font-bold text-gray-900'>{t('auth.welcomeBack')}</h2>
         <p className='mt-2 text-gray-600'>
-          Sign in to your account to continue
+          {t('auth.signInToContinue')}
         </p>
       </div>
 
@@ -65,12 +67,12 @@ const Login = () => {
 
       <form onSubmit={handleSubmit} className='space-y-6'>
         <Input
-          label='Email address'
+          label={t('auth.emailAddress')}
           type='email'
           name='email'
           value={formData.email}
           onChange={handleChange}
-          placeholder='Enter your email'
+          placeholder={t('auth.enterEmail')}
           leftIcon={EnvelopeIcon}
           required
           autoComplete='email'
@@ -78,12 +80,12 @@ const Login = () => {
         />
 
         <Input
-          label='Password'
+          label={t('auth.password')}
           type={showPassword ? 'text' : 'password'}
           name='password'
           value={formData.password}
           onChange={handleChange}
-          placeholder='Enter your password'
+          placeholder={t('auth.enterPassword')}
           leftIcon={LockClosedIcon}
           rightIcon={showPassword ? EyeSlashIcon : EyeIcon}
           onRightIconClick={() => setShowPassword(!showPassword)}
@@ -98,29 +100,29 @@ const Login = () => {
               type='checkbox'
               className='h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500'
             />
-            <span className='ml-2 text-sm text-gray-600'>Remember me</span>
+            <span className='ml-2 text-sm text-gray-600'>{t('auth.rememberMe')}</span>
           </label>
           <Link
             to='/forgot-password'
             className='text-sm font-medium text-primary-600 hover:text-primary-500'
           >
-            Forgot password?
+            {t('auth.forgotPassword')}
           </Link>
         </div>
 
         <Button type='submit' fullWidth loading={loading} size='lg'>
-          Sign in
+          {t('auth.signIn')}
         </Button>
       </form>
 
       <div className='mt-8 text-center text-sm text-gray-500'>
         <p>
-          Having trouble signing in?{' '}
+          {t('auth.havingTrouble')}{' '}
           <a
             href='mailto:support@railway.gov.bd'
             className='font-medium text-primary-600 hover:text-primary-500'
           >
-            Contact support
+            {t('auth.contactSupport')}
           </a>
         </p>
       </div>
@@ -128,7 +130,7 @@ const Login = () => {
       {/* Demo credentials hint */}
       <div className='mt-8 p-4 bg-gray-100 rounded-lg'>
         <p className='text-xs text-gray-500 text-center'>
-          <strong>Demo Credentials:</strong>
+          <strong>{t('auth.demoCredentials')}</strong>
           <br />
           Super Admin: admin@railway.gov.bd / password
           <br />

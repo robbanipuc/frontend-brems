@@ -197,4 +197,5 @@ export const STORAGE_KEYS = {
   USER_DATA: 'brems_user_data',
   THEME: 'brems_theme',
   SIDEBAR_COLLAPSED: 'brems_sidebar_collapsed',
+  LOCALE: 'brems_locale',
 };

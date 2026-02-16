@@ -9,59 +9,19 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card } from '@/components/common';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useLanguage } from '@/context/LanguageContext';
 
 const QuickActions = () => {
   const permissions = usePermissions();
+  const { t } = useLanguage();
 
   const actions = [
-    {
-      name: 'Add Employee',
-      description: 'Create a new employee record',
-      href: '/employees/create',
-      icon: UserPlusIcon,
-      color: 'bg-blue-500',
-      show: permissions.canCreateEmployee,
-    },
-    {
-      name: 'Add Office',
-      description: 'Create a new office',
-      href: '/offices?action=create',
-      icon: BuildingOfficeIcon,
-      color: 'bg-green-500',
-      show: permissions.canCreateOffice,
-    },
-    {
-      name: 'Create Form',
-      description: 'Design a new form',
-      href: '/forms/create',
-      icon: ClipboardDocumentListIcon,
-      color: 'bg-purple-500',
-      show: permissions.canCreateForm,
-    },
-    {
-      name: 'Transfer Employee',
-      description: 'Process employee transfers',
-      href: '/employees/released',
-      icon: ArrowsRightLeftIcon,
-      color: 'bg-orange-500',
-      show: permissions.canTransferEmployee,
-    },
-    {
-      name: 'View Reports',
-      description: 'Access analytics and reports',
-      href: '/reports/employees',
-      icon: ChartBarIcon,
-      color: 'bg-indigo-500',
-      show: permissions.canViewReports,
-    },
-    {
-      name: 'Profile Requests',
-      description: 'Review pending requests',
-      href: '/profile-requests',
-      icon: DocumentPlusIcon,
-      color: 'bg-pink-500',
-      show: permissions.canProcessRequests,
-    },
+    { nameKey: 'dashboard.addEmployee', descKey: 'dashboard.addEmployeeDesc', href: '/employees/create', icon: UserPlusIcon, color: 'bg-blue-500', show: permissions.canCreateEmployee },
+    { nameKey: 'dashboard.addOffice', descKey: 'dashboard.addOfficeDesc', href: '/offices?action=create', icon: BuildingOfficeIcon, color: 'bg-green-500', show: permissions.canCreateOffice },
+    { nameKey: 'dashboard.createForm', descKey: 'dashboard.createFormDesc', href: '/forms/create', icon: ClipboardDocumentListIcon, color: 'bg-purple-500', show: permissions.canCreateForm },
+    { nameKey: 'dashboard.transferEmployee', descKey: 'dashboard.transferEmployeeDesc', href: '/employees/released', icon: ArrowsRightLeftIcon, color: 'bg-orange-500', show: permissions.canTransferEmployee },
+    { nameKey: 'dashboard.viewReports', descKey: 'dashboard.viewReportsDesc', href: '/reports/employees', icon: ChartBarIcon, color: 'bg-indigo-500', show: permissions.canViewReports },
+    { nameKey: 'dashboard.profileRequests', descKey: 'dashboard.profileRequestsDesc', href: '/profile-requests', icon: DocumentPlusIcon, color: 'bg-pink-500', show: permissions.canProcessRequests },
   ];
 
   const visibleActions = actions.filter(action => action.show);
@@ -71,13 +31,13 @@ const QuickActions = () => {
   return (
     <Card>
       <Card.Header>
-        <Card.Title>Quick Actions</Card.Title>
+        <Card.Title>{t('dashboard.quickActions')}</Card.Title>
       </Card.Header>
       <Card.Body>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {visibleActions.map((action) => (
             <Link
-              key={action.name}
+              key={action.nameKey}
               to={action.href}
               className="group flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all"
             >
@@ -85,10 +45,10 @@ const QuickActions = () => {
                 <action.icon className="w-6 h-6" />
               </div>
               <span className="text-sm font-medium text-gray-900 text-center">
-                {action.name}
+                {t(action.nameKey)}
               </span>
               <span className="text-xs text-gray-500 text-center mt-1">
-                {action.description}
+                {t(action.descKey)}
               </span>
             </Link>
           ))}

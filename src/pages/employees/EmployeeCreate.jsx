@@ -10,6 +10,7 @@ import {
   DatePicker,
   Alert,
 } from '@/components/common';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   GENDER_OPTIONS,
   RELIGION_OPTIONS,
@@ -22,6 +23,7 @@ import toast from 'react-hot-toast';
 
 const EmployeeCreate = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [offices, setOffices] = useState([]);
   const [designations, setDesignations] = useState([]);
@@ -97,21 +99,21 @@ const EmployeeCreate = () => {
     const newErrors = {};
 
     if (!formData.first_name.trim()) {
-      newErrors.first_name = 'First name is required';
+      newErrors.first_name = t('employee.firstNameRequired');
     }
     if (!formData.last_name.trim()) {
-      newErrors.last_name = 'Last name is required';
+      newErrors.last_name = t('employee.lastNameRequired');
     }
     if (!formData.nid_number.trim()) {
-      newErrors.nid_number = 'NID number is required';
+      newErrors.nid_number = t('employee.nidRequired');
     } else if (!/^\d{10,17}$/.test(formData.nid_number)) {
-      newErrors.nid_number = 'NID must be 10-17 digits';
+      newErrors.nid_number = t('employee.nidInvalid');
     }
     if (!formData.designation_id) {
-      newErrors.designation_id = 'Designation is required';
+      newErrors.designation_id = t('employee.designationRequired');
     }
     if (!formData.office_id) {
-      newErrors.office_id = 'Office is required';
+      newErrors.office_id = t('employee.officeRequired');
     }
 
     setErrors(newErrors);
@@ -122,14 +124,14 @@ const EmployeeCreate = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
+      toast.error(t('employee.fixErrors'));
       return;
     }
 
     try {
       setLoading(true);
       const result = await employeeService.create(formData);
-      toast.success('Employee created successfully');
+      toast.success(t('employee.createdSuccess'));
       navigate(`/employees/${result.employee.id}`);
     } catch (err) {
       const errorMessage = getErrorMessage(err);
@@ -146,12 +148,12 @@ const EmployeeCreate = () => {
   return (
     <div>
       <PageHeader
-        title="Add New Employee"
-        subtitle="Create a new employee record"
+        title={t('employee.addNew')}
+        subtitle={t('employee.createNewRecord')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Employees', href: '/employees' },
-          { label: 'Add Employee' },
+          { label: t('nav.Dashboard'), href: '/dashboard' },
+          { label: t('nav.Employees'), href: '/employees' },
+          { label: t('nav.Add Employee') },
         ]}
       />
 
@@ -160,54 +162,54 @@ const EmployeeCreate = () => {
           {/* Basic Information */}
           <Card>
             <Card.Header>
-              <Card.Title>Basic Information</Card.Title>
+              <Card.Title>{t('employee.basicInfo')}</Card.Title>
             </Card.Header>
             <Card.Body>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Input
-                  label="First Name"
+                  label={t('employee.firstName')}
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
                   error={errors.first_name}
                   required
-                  placeholder="Enter first name"
+                  placeholder={t('employee.enterFirstName')}
                 />
                 <Input
-                  label="Last Name"
+                  label={t('employee.lastName')}
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
                   error={errors.last_name}
                   required
-                  placeholder="Enter last name"
+                  placeholder={t('employee.enterLastName')}
                 />
                 <Input
-                  label="Name (Bangla)"
+                  label={t('employee.nameBangla')}
                   name="name_bn"
                   value={formData.name_bn}
                   onChange={handleChange}
-                  placeholder="বাংলায় নাম"
+                  placeholder={t('employee.nameBanglaPlaceholder')}
                   className="font-bangla"
                 />
                 <Input
-                  label="NID Number"
+                  label={t('employee.nidNumber')}
                   name="nid_number"
                   value={formData.nid_number}
                   onChange={handleChange}
                   error={errors.nid_number}
                   required
-                  placeholder="Enter NID number"
+                  placeholder={t('employee.enterNid')}
                 />
                 <Input
-                  label="Phone"
+                  label={t('employee.phone')}
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="01XXXXXXXXX"
                 />
                 <DatePicker
-                  label="Date of Birth"
+                  label={t('employee.dateOfBirth')}
                   name="dob"
                   value={formData.dob}
                   onChange={handleChange}
@@ -220,69 +222,69 @@ const EmployeeCreate = () => {
           {/* Personal Details */}
           <Card>
             <Card.Header>
-              <Card.Title>Personal Details</Card.Title>
+              <Card.Title>{t('employee.personalDetails')}</Card.Title>
             </Card.Header>
             <Card.Body>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Select
-                  label="Gender"
+                  label={t('employee.gender')}
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
                   options={GENDER_OPTIONS}
-                  placeholder="Select gender"
+                  placeholder={t('employee.selectGender')}
                 />
                 <Select
-                  label="Religion"
+                  label={t('employee.religion')}
                   name="religion"
                   value={formData.religion}
                   onChange={handleChange}
                   options={RELIGION_OPTIONS}
-                  placeholder="Select religion"
+                  placeholder={t('employee.selectReligion')}
                 />
                 <Select
-                  label="Blood Group"
+                  label={t('employee.bloodGroup')}
                   name="blood_group"
                   value={formData.blood_group}
                   onChange={handleChange}
                   options={BLOOD_GROUP_OPTIONS}
-                  placeholder="Select blood group"
+                  placeholder={t('employee.selectBloodGroup')}
                 />
                 <Select
-                  label="Marital Status"
+                  label={t('employee.maritalStatus')}
                   name="marital_status"
                   value={formData.marital_status}
                   onChange={handleChange}
                   options={MARITAL_STATUS_OPTIONS}
-                  placeholder="Select marital status"
+                  placeholder={t('employee.selectMaritalStatus')}
                 />
                 <Input
-                  label="Place of Birth"
+                  label={t('employee.placeOfBirth')}
                   name="place_of_birth"
                   value={formData.place_of_birth}
                   onChange={handleChange}
-                  placeholder="Enter place of birth"
+                  placeholder={t('employee.enterPlaceOfBirth')}
                 />
                 <Input
-                  label="Height"
+                  label={t('employee.height')}
                   name="height"
                   value={formData.height}
                   onChange={handleChange}
-                  placeholder="e.g., 5.8"
+                  placeholder={t('employee.heightPlaceholder')}
                 />
                 <Input
-                  label="Passport Number"
+                  label={t('employee.passportNumber')}
                   name="passport"
                   value={formData.passport}
                   onChange={handleChange}
-                  placeholder="Enter passport number"
+                  placeholder={t('employee.enterPassport')}
                 />
                 <Input
-                  label="Birth Registration No"
+                  label={t('employee.birthRegNo')}
                   name="birth_reg"
                   value={formData.birth_reg}
                   onChange={handleChange}
-                  placeholder="Enter birth registration number"
+                  placeholder={t('employee.enterBirthReg')}
                 />
               </div>
             </Card.Body>
@@ -291,12 +293,12 @@ const EmployeeCreate = () => {
           {/* Employment Information */}
           <Card>
             <Card.Header>
-              <Card.Title>Employment Information</Card.Title>
+              <Card.Title>{t('employee.employmentInfo')}</Card.Title>
             </Card.Header>
             <Card.Body>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Select
-                  label="Office *"
+                  label={`${t('employee.office')} *`}
                   name="office_id"
                   value={formData.office_id}
                   onChange={handleChange}
@@ -306,10 +308,10 @@ const EmployeeCreate = () => {
                   }))}
                   error={errors.office_id}
                   required
-                  placeholder="Select office first"
+                  placeholder={t('employee.selectOfficeFirst')}
                 />
                 <Select
-                  label="Designation *"
+                  label={`${t('employee.designation')} *`}
                   name="designation_id"
                   value={formData.designation_id}
                   onChange={handleChange}
@@ -319,26 +321,26 @@ const EmployeeCreate = () => {
                   }))}
                   error={errors.designation_id}
                   required
-                  placeholder={formData.office_id ? 'Select designation' : 'Select office first'}
+                  placeholder={formData.office_id ? t('employee.selectDesignation') : t('employee.selectOfficeFirst')}
                   disabled={!formData.office_id}
                 />
                 <Select
-                  label="Cadre / Non-cadre"
+                  label={t('employee.cadreNonCadre')}
                   name="cadre_type"
                   value={formData.cadre_type}
                   onChange={handleChange}
                   options={CADRE_OPTIONS}
-                  placeholder="Select if applicable"
+                  placeholder={t('employee.selectIfApplicable')}
                 />
                 <Input
-                  label="Batch No. (if available)"
+                  label={t('employee.batchNo')}
                   name="batch_no"
                   value={formData.batch_no}
                   onChange={handleChange}
-                  placeholder="Enter batch number"
+                  placeholder={t('employee.enterBatchNumber')}
                 />
                 <DatePicker
-                  label="Joining Date"
+                  label={t('employee.joiningDate')}
                   name="joining_date"
                   value={formData.joining_date}
                   onChange={handleChange}
@@ -354,10 +356,10 @@ const EmployeeCreate = () => {
               onClick={() => navigate('/employees')}
               disabled={loading}
             >
-              Cancel
+              {t('common.Cancel')}
             </Button>
             <Button type="submit" loading={loading}>
-              Create Employee
+              {t('employee.createEmployee')}
             </Button>
           </div>
         </div>

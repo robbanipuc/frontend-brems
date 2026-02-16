@@ -49,22 +49,22 @@ const EmployeeList = () => {
   // Filters
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [officeFilter, setOfficeFilter] = useState(
-    searchParams.get('office_id') || ''
+    searchParams.get('office_id') || '',
   );
   const [designationFilter, setDesignationFilter] = useState(
-    searchParams.get('designation_id') || ''
+    searchParams.get('designation_id') || '',
   );
   const [statusFilter, setStatusFilter] = useState(
-    searchParams.get('status') || ''
+    searchParams.get('status') || '',
   );
   const [verifiedFilter, setVerifiedFilter] = useState(
-    searchParams.get('is_verified') || ''
+    searchParams.get('is_verified') || '',
   );
   const [cadreFilter, setCadreFilter] = useState(
-    searchParams.get('cadre_type') || ''
+    searchParams.get('cadre_type') || '',
   );
   const [batchFilter, setBatchFilter] = useState(
-    searchParams.get('batch_no') || ''
+    searchParams.get('batch_no') || '',
   );
   const [showFilters, setShowFilters] = useState(false);
 
@@ -298,8 +298,8 @@ const EmployeeList = () => {
             value === EMPLOYEE_STATUS.ACTIVE
               ? 'success'
               : value === EMPLOYEE_STATUS.RELEASED
-              ? 'warning'
-              : 'default'
+                ? 'warning'
+                : 'default'
           }
         >
           {STATUS_LABELS[value] || value}

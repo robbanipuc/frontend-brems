@@ -4,9 +4,11 @@ import clsx from 'clsx';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileSidebar from './MobileSidebar';
+import { useLanguage } from '@/context/LanguageContext';
 import { STORAGE_KEYS } from '@/utils/constants';
 
 const MainLayout = () => {
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED);
@@ -16,7 +18,7 @@ const MainLayout = () => {
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.SIDEBAR_COLLAPSED,
-      String(sidebarCollapsed)
+      String(sidebarCollapsed),
     );
   }, [sidebarCollapsed]);
 
@@ -40,7 +42,7 @@ const MainLayout = () => {
       <div
         className={clsx(
           'flex flex-col min-h-screen transition-[padding] duration-300 ease-in-out',
-          sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+          sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64',
         )}
       >
         {/* Header */}
@@ -54,8 +56,7 @@ const MainLayout = () => {
         {/* Footer */}
         <footer className='px-4 py-4 text-center text-sm text-gray-500 border-t border-gray-200 bg-white'>
           <p>
-            © {new Date().getFullYear()} Bangladesh Railway. All rights
-            reserved.
+            {t('footer.copyright', { year: new Date().getFullYear() })}
           </p>
         </footer>
       </div>

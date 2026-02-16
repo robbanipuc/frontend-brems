@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BuildingOfficeIcon } from '@heroicons/react/24/outline';
+import {
+  BuildingOfficeIcon,
+  ArrowDownTrayIcon,
+  DocumentArrowDownIcon,
+} from '@heroicons/react/24/outline';
 import { officeService } from '@/services';
 import {
   PageHeader,
@@ -11,6 +15,7 @@ import {
   Button,
 } from '@/components/common';
 import { getErrorMessage } from '@/utils/helpers';
+import toast from 'react-hot-toast';
 
 const VacantPostsReport = () => {
   const [offices, setOffices] = useState([]);
@@ -18,6 +23,8 @@ const VacantPostsReport = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
 
   useEffect(() => {
     officeService.getManaged().then(setOffices).catch(console.error);
@@ -42,6 +49,32 @@ const VacantPostsReport = () => {
       setError(getErrorMessage(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!selectedOfficeId) return;
+    try {
+      setExportingPdf(true);
+      await officeService.exportVacantPostsPdf(selectedOfficeId);
+      toast.success('PDF downloaded');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    if (!selectedOfficeId) return;
+    try {
+      setExportingCsv(true);
+      await officeService.exportVacantPostsCsv(selectedOfficeId);
+      toast.success('CSV downloaded');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setExportingCsv(false);
     }
   };
 
@@ -74,11 +107,31 @@ const VacantPostsReport = () => {
             className='min-w-[280px]'
           />
           {data && selectedOfficeId && (
-            <Link to={`/offices/${selectedOfficeId}/edit`}>
-              <Button variant='outline' size='sm'>
-                Edit office & posts
+            <>
+              <Button
+                variant='outline'
+                size='sm'
+                icon={DocumentArrowDownIcon}
+                onClick={handleExportPdf}
+                loading={exportingPdf}
+              >
+                Export PDF
               </Button>
-            </Link>
+              <Button
+                variant='outline'
+                size='sm'
+                icon={ArrowDownTrayIcon}
+                onClick={handleExportCsv}
+                loading={exportingCsv}
+              >
+                Export CSV
+              </Button>
+              <Link to={`/offices/${selectedOfficeId}/edit`}>
+                <Button variant='outline' size='sm'>
+                  Edit office & posts
+                </Button>
+              </Link>
+            </>
           )}
         </div>
       </Card>

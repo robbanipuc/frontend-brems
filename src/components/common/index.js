@@ -19,6 +19,7 @@ export { default as PageHeader } from './PageHeader';
 export { default as Pagination } from './Pagination';
 export { default as SearchInput } from './SearchInput';
 export { default as Logo } from './Logo';
+export { default as LanguageSwitcher } from './LanguageSwitcher';
 
 // Advanced components
 export { default as Table } from './Table';

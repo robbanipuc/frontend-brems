@@ -5,16 +5,18 @@ import {
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import { Card, Badge, Button, EmptyState } from '@/components/common';
+import { useLanguage } from '@/context/LanguageContext';
 import { formatDate } from '@/utils/helpers';
 
 const PendingItemsCard = ({ pendingItems, loading }) => {
+  const { t } = useLanguage();
   const { profile_requests = [], unverified_employees = [] } = pendingItems || {};
 
   if (loading) {
     return (
       <Card>
         <Card.Header>
-          <Card.Title>Pending Items</Card.Title>
+          <Card.Title>{t('dashboard.pendingItems')}</Card.Title>
         </Card.Header>
         <Card.Body>
           <div className="space-y-4 animate-pulse">
@@ -32,15 +34,15 @@ const PendingItemsCard = ({ pendingItems, loading }) => {
   return (
     <Card>
       <Card.Header>
-        <Card.Title>Pending Items</Card.Title>
+        <Card.Title>{t('dashboard.pendingItems')}</Card.Title>
       </Card.Header>
       <Card.Body className="p-0">
         {!hasItems ? (
           <div className="p-6">
             <EmptyState
               icon={DocumentCheckIcon}
-              title="All caught up!"
-              description="No pending items require your attention"
+              title={t('dashboard.allCaughtUp')}
+              description={t('dashboard.noPendingItems')}
             />
           </div>
         ) : (
@@ -51,7 +53,7 @@ const PendingItemsCard = ({ pendingItems, loading }) => {
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
                     <DocumentCheckIcon className="w-4 h-4 text-purple-500" />
-                    Profile Requests
+                    {t('dashboard.profileRequestsSection')}
                   </h4>
                   <Badge variant="purple">{profile_requests.length}</Badge>
                 </div>
@@ -84,7 +86,7 @@ const PendingItemsCard = ({ pendingItems, loading }) => {
                     to="/profile-requests"
                     className="mt-3 flex items-center justify-center gap-1 text-sm text-primary-600 hover:text-primary-700"
                   >
-                    View all {profile_requests.length} requests
+                    {t('dashboard.viewAllRequests', { count: profile_requests.length })}
                     <ArrowRightIcon className="w-4 h-4" />
                   </Link>
                 )}
@@ -97,7 +99,7 @@ const PendingItemsCard = ({ pendingItems, loading }) => {
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
                     <ExclamationTriangleIcon className="w-4 h-4 text-yellow-500" />
-                    Unverified Employees
+                    {t('dashboard.unverifiedEmployees')}
                   </h4>
                   <Badge variant="warning">{unverified_employees.length}</Badge>
                 </div>
@@ -130,7 +132,7 @@ const PendingItemsCard = ({ pendingItems, loading }) => {
                     to="/employees?is_verified=false"
                     className="mt-3 flex items-center justify-center gap-1 text-sm text-primary-600 hover:text-primary-700"
                   >
-                    View all {unverified_employees.length} employees
+                    {t('dashboard.viewAllEmployees', { count: unverified_employees.length })}
                     <ArrowRightIcon className="w-4 h-4" />
                   </Link>
                 )}

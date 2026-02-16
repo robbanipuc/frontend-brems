@@ -18,6 +18,7 @@ import {
   DocumentCheckIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { STORAGE_KEYS } from '@/utils/constants';
 import Logo from './Logo';
@@ -29,6 +30,7 @@ const Sidebar = ({
 }) => {
   const { user, logout, isSuperAdmin, isOfficeAdmin, isVerifiedUser } =
     useAuth();
+  const { t } = useLanguage();
   const permissions = usePermissions();
   const location = useLocation();
   const isMobile = !!onNavigateClick;
@@ -187,7 +189,7 @@ const Sidebar = ({
         )}
         {!effectiveCollapsed && (
           <>
-            <span className='flex-1'>{item.name}</span>
+            <span className='flex-1'>{t(`nav.${item.name}`)}</span>
             {item.badge && (
               <span className='px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full'>
                 !
@@ -226,7 +228,7 @@ const Sidebar = ({
           {item.icon && <item.icon className='w-5 h-5 flex-shrink-0' />}
           {!effectiveCollapsed && (
             <>
-              <span className='flex-1 text-left'>{item.name}</span>
+              <span className='flex-1 text-left'>{t(`nav.${item.name}`)}</span>
               <ChevronRightIcon
                 className={clsx(
                   'w-4 h-4 transition-transform',
@@ -258,7 +260,7 @@ const Sidebar = ({
         <button
           onClick={() => setCollapsed(!collapsed)}
           className='p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? t('nav.Expand sidebar') : t('nav.Collapse sidebar')}
         >
           <ChevronLeftIcon className='w-5 h-5' />
         </button>
@@ -267,7 +269,7 @@ const Sidebar = ({
         <button
           onClick={() => setCollapsed(!collapsed)}
           className='absolute -right-3 top-5 bg-white border border-gray-200 rounded-full p-1 shadow-sm hover:bg-gray-50 z-10'
-          title='Expand sidebar'
+          title={t('nav.Expand sidebar')}
         >
           <ChevronRightIcon className='w-4 h-4 text-gray-600' />
         </button>
@@ -314,7 +316,7 @@ const Sidebar = ({
           )}
         >
           <ArrowRightOnRectangleIcon className='w-5 h-5 flex-shrink-0' />
-          {!effectiveCollapsed && <span>Logout</span>}
+          {!effectiveCollapsed && <span>{t('nav.Logout')}</span>}
         </button>
       </div>
 
@@ -330,9 +332,7 @@ const Sidebar = ({
                 {user.name}
               </p>
               <p className='text-xs text-gray-500 truncate'>
-                {user.role
-                  ?.replace('_', ' ')
-                  .replace(/\b\w/g, (l) => l.toUpperCase())}
+                {user?.role ? t(`roles.${user.role}`) : ''}
               </p>
             </div>
           </div>

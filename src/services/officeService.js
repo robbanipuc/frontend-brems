@@ -51,6 +51,44 @@ const officeService = {
     return response.data;
   },
 
+  // Export vacant posts report as PDF
+  async exportVacantPostsPdf(officeId) {
+    const { apiDownload } = await import('@/utils/api');
+    const code = String(officeId);
+    return apiDownload(
+      `/offices/${officeId}/vacant-posts/export-pdf`,
+      `vacant_posts_${code}_${Date.now()}.pdf`
+    );
+  },
+
+  // Export vacant posts report as CSV
+  async exportVacantPostsCsv(officeId) {
+    const { apiDownload } = await import('@/utils/api');
+    const code = String(officeId);
+    return apiDownload(
+      `/offices/${officeId}/vacant-posts/export-csv`,
+      `vacant_posts_${code}_${Date.now()}.csv`
+    );
+  },
+
+  // Export full office report (details, employees, posts/vacancies) as PDF
+  async exportOfficePdf(officeId) {
+    const { apiDownload } = await import('@/utils/api');
+    return apiDownload(
+      `/offices/${officeId}/export-pdf`,
+      `office_${officeId}_${Date.now()}.pdf`
+    );
+  },
+
+  // Export full office report as CSV
+  async exportOfficeCsv(officeId) {
+    const { apiDownload } = await import('@/utils/api');
+    return apiDownload(
+      `/offices/${officeId}/export-csv`,
+      `office_${officeId}_${Date.now()}.csv`
+    );
+  },
+
   // Update sanctioned posts (total_posts) per designation for an office
   async updateDesignationPosts(officeId, posts) {
     const response = await api.put(`/offices/${officeId}/designation-posts`, {

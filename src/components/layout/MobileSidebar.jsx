@@ -1,9 +1,11 @@
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '@/context/LanguageContext';
 import Sidebar from './Sidebar';
 
 const MobileSidebar = ({ isOpen, onClose }) => {
+  const { t } = useLanguage();
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as='div' className='relative z-50 lg:hidden' onClose={onClose}>
@@ -33,13 +35,13 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             <Dialog.Panel className='relative flex w-full max-w-xs flex-1 flex-col bg-white'>
               {/* Close button inside panel */}
               <div className='flex h-16 shrink-0 items-center justify-between border-b border-gray-200 px-4'>
-                <span className='text-sm font-medium text-gray-700'>Menu</span>
+                <span className='text-sm font-medium text-gray-700'>{t('nav.Menu')}</span>
                 <button
                   type='button'
                   className='rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                   onClick={onClose}
                 >
-                  <span className='sr-only'>Close sidebar</span>
+                  <span className='sr-only'>{t('nav.Close sidebar')}</span>
                   <XMarkIcon className='h-6 w-6' />
                 </button>
               </div>

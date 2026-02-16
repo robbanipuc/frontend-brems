@@ -11,12 +11,13 @@ import {
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useAuth } from '@/context/AuthContext';
-import { Avatar } from '@/components/common';
-import { ROLE_LABELS } from '@/utils/constants';
+import { useLanguage } from '@/context/LanguageContext';
+import { Avatar, LanguageSwitcher } from '@/components/common';
 import { getStorageUrl } from '@/utils/helpers';
 
 const Header = ({ onMenuClick, showMenuButton = false }) => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
 
   const userNavigation = [
     { name: 'My Profile', href: '/my-profile', icon: UserCircleIcon },
@@ -42,13 +43,14 @@ const Header = ({ onMenuClick, showMenuButton = false }) => {
           {/* Breadcrumb or page context can go here */}
           <div className='hidden sm:block'>
             <h1 className='text-lg font-semibold text-gray-900'>
-              Bangladesh Railway Employee Management System
+              {t('header.appTitle')}
             </h1>
           </div>
         </div>
 
         {/* Right side */}
         <div className='flex items-center gap-4'>
+          <LanguageSwitcher size='sm' />
           {/* Notifications */}
           <button
             type='button'
@@ -76,7 +78,7 @@ const Header = ({ onMenuClick, showMenuButton = false }) => {
                   {user?.name}
                 </p>
                 <p className='text-xs text-gray-500'>
-                  {ROLE_LABELS[user?.role] || user?.role}
+                  {user?.role ? t(`roles.${user.role}`) : user?.role}
                 </p>
               </div>
             </Menu.Button>
@@ -112,11 +114,11 @@ const Header = ({ onMenuClick, showMenuButton = false }) => {
                             'flex items-center gap-3 px-4 py-2 text-sm',
                             active
                               ? 'bg-gray-100 text-gray-900'
-                              : 'text-gray-700'
+                              : 'text-gray-700',
                           )}
                         >
                           <item.icon className='w-5 h-5 text-gray-400' />
-                          {item.name}
+                          {t(`header.${item.name}`)}
                         </Link>
                       )}
                     </Menu.Item>
@@ -131,11 +133,11 @@ const Header = ({ onMenuClick, showMenuButton = false }) => {
                         onClick={logout}
                         className={clsx(
                           'flex w-full items-center gap-3 px-4 py-2 text-sm',
-                          active ? 'bg-gray-100 text-red-700' : 'text-red-600'
+                          active ? 'bg-gray-100 text-red-700' : 'text-red-600',
                         )}
                       >
                         <ArrowRightOnRectangleIcon className='w-5 h-5' />
-                        Sign out
+                        {t('header.signOut')}
                       </button>
                     )}
                   </Menu.Item>

@@ -226,7 +226,7 @@ const EmployeeDetail = ({
           employee={employee}
           onUpdate={refreshEmployee}
           canManage={canManage}
-          canUpload={isMyProfilePage ? false : (canManage || isOwnProfile)}
+          canUpload={isMyProfilePage ? false : canManage || isOwnProfile}
           verifiedOnly={isMyProfilePage}
         />
       ),
@@ -332,11 +332,15 @@ const EmployeeDetail = ({
                   <p className='text-gray-500 mt-1'>
                     {employee.cadre_type && (
                       <span>
-                        {employee.cadre_type === 'cadre' ? 'Cadre' : 'Non-Cadre'}
+                        {employee.cadre_type === 'cadre'
+                          ? 'Cadre'
+                          : 'Non-Cadre'}
                       </span>
                     )}
                     {employee.cadre_type && employee.batch_no && ' • '}
-                    {employee.batch_no && <span>Batch: {employee.batch_no}</span>}
+                    {employee.batch_no && (
+                      <span>Batch: {employee.batch_no}</span>
+                    )}
                   </p>
                 )}
                 <div className='flex items-center gap-2 mt-3'>
@@ -345,8 +349,8 @@ const EmployeeDetail = ({
                       employee.status === EMPLOYEE_STATUS.ACTIVE
                         ? 'success'
                         : employee.status === EMPLOYEE_STATUS.RELEASED
-                        ? 'warning'
-                        : 'default'
+                          ? 'warning'
+                          : 'default'
                     }
                   >
                     {STATUS_LABELS[employee.status] || employee.status}

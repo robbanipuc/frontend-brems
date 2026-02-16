@@ -10,6 +10,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { Card } from '@/components/common';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Register ChartJS components
 ChartJS.register(
@@ -22,6 +23,7 @@ ChartJS.register(
 );
 
 const OfficeStatsChart = ({ officeStats = [], loading }) => {
+  const { t } = useLanguage();
   const chartData = useMemo(() => {
     const labels = officeStats.slice(0, 10).map(office => office.name);
     const data = officeStats.slice(0, 10).map(office => office.employee_count);
@@ -30,7 +32,7 @@ const OfficeStatsChart = ({ officeStats = [], loading }) => {
       labels,
       datasets: [
         {
-          label: 'Employees',
+          label: t('dashboard.employees'),
           data,
           backgroundColor: 'rgba(22, 163, 74, 0.8)',
           borderColor: 'rgba(22, 163, 74, 1)',
@@ -39,7 +41,7 @@ const OfficeStatsChart = ({ officeStats = [], loading }) => {
         },
       ],
     };
-  }, [officeStats]);
+  }, [officeStats, t]);
 
   const options = {
     responsive: true,
@@ -88,7 +90,7 @@ const OfficeStatsChart = ({ officeStats = [], loading }) => {
     return (
       <Card>
         <Card.Header>
-          <Card.Title>Employees by Office</Card.Title>
+          <Card.Title>{t('dashboard.employeesByOffice')}</Card.Title>
         </Card.Header>
         <Card.Body>
           <div className="h-64 bg-gray-100 rounded animate-pulse" />
@@ -100,8 +102,8 @@ const OfficeStatsChart = ({ officeStats = [], loading }) => {
   return (
     <Card>
       <Card.Header>
-        <Card.Title subtitle="Top 10 offices by employee count">
-          Employees by Office
+        <Card.Title subtitle={t('dashboard.top10Offices')}>
+          {t('dashboard.employeesByOffice')}
         </Card.Title>
       </Card.Header>
       <Card.Body>

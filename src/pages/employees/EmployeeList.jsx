@@ -60,6 +60,12 @@ const EmployeeList = () => {
   const [verifiedFilter, setVerifiedFilter] = useState(
     searchParams.get('is_verified') || ''
   );
+  const [cadreFilter, setCadreFilter] = useState(
+    searchParams.get('cadre_type') || ''
+  );
+  const [batchFilter, setBatchFilter] = useState(
+    searchParams.get('batch_no') || ''
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   // Verification modal
@@ -86,6 +92,8 @@ const EmployeeList = () => {
     designationFilter,
     statusFilter,
     verifiedFilter,
+    cadreFilter,
+    batchFilter,
   ]);
 
   const fetchEmployees = async () => {
@@ -99,6 +107,8 @@ const EmployeeList = () => {
       if (designationFilter) params.designation_id = designationFilter;
       if (statusFilter) params.status = statusFilter;
       if (verifiedFilter !== '') params.is_verified = verifiedFilter;
+      if (cadreFilter) params.cadre_type = cadreFilter;
+      if (batchFilter) params.batch_no = batchFilter;
 
       const data = await employeeService.getAll(params);
       setEmployees(data);
@@ -159,6 +169,8 @@ const EmployeeList = () => {
         status: statusFilter || undefined,
         is_verified:
           verifiedFilter === '' ? undefined : verifiedFilter === 'true',
+        cadre_type: cadreFilter || undefined,
+        batch_no: batchFilter || undefined,
       });
       toast.dismiss();
       toast.success('Export completed');
@@ -177,6 +189,8 @@ const EmployeeList = () => {
         status: statusFilter || undefined,
         is_verified:
           verifiedFilter === '' ? undefined : verifiedFilter === 'true',
+        cadre_type: cadreFilter || undefined,
+        batch_no: batchFilter || undefined,
       });
       toast.dismiss();
       toast.success('PDF generated');
@@ -192,10 +206,17 @@ const EmployeeList = () => {
     setDesignationFilter('');
     setStatusFilter('');
     setVerifiedFilter('');
+    setCadreFilter('');
+    setBatchFilter('');
   };
 
   const hasActiveFilters =
-    officeFilter || designationFilter || statusFilter || verifiedFilter !== '';
+    officeFilter ||
+    designationFilter ||
+    statusFilter ||
+    verifiedFilter !== '' ||
+    cadreFilter ||
+    batchFilter;
 
   // Table columns
   const columns = [
@@ -411,6 +432,8 @@ const EmployeeList = () => {
                         designationFilter,
                         statusFilter,
                         verifiedFilter,
+                        cadreFilter,
+                        batchFilter,
                       ].filter(Boolean).length
                     }
                   </span>
@@ -426,7 +449,7 @@ const EmployeeList = () => {
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className='mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+            <div className='mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4'>
               <Select
                 label='Office'
                 value={officeFilter}
@@ -455,6 +478,28 @@ const EmployeeList = () => {
                 ]}
                 placeholder='All Status'
               />
+              <Select
+                label='Employee Type'
+                value={cadreFilter}
+                onChange={(e) => setCadreFilter(e.target.value)}
+                options={[
+                  { value: 'cadre', label: 'Cadre' },
+                  { value: 'non_cadre', label: 'Non-Cadre' },
+                ]}
+                placeholder='All'
+              />
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Batch
+                </label>
+                <input
+                  type='text'
+                  value={batchFilter}
+                  onChange={(e) => setBatchFilter(e.target.value)}
+                  placeholder='Batch number'
+                  className='block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500'
+                />
+              </div>
               <Select
                 label='Verification'
                 value={verifiedFilter}

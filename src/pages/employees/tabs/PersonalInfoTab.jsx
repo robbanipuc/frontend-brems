@@ -18,6 +18,17 @@ const PersonalInfoTab = ({ employee }) => {
       <dl className="divide-y divide-gray-200">
         <InfoRow label="Full Name (English)" value={`${employee.first_name} ${employee.last_name}`} />
         <InfoRow label="Full Name (Bangla)" value={employee.name_bn} />
+        <InfoRow
+          label="Employee Type"
+          value={
+            employee.cadre_type
+              ? employee.cadre_type === 'cadre'
+                ? 'Cadre'
+                : 'Non-Cadre'
+              : '-'
+          }
+        />
+        <InfoRow label="Batch" value={employee.batch_no} />
         <InfoRow label="NID Number" value={employee.nid_number} />
         <InfoRow label="Date of Birth" value={formatDate(employee.dob)} />
         <InfoRow label="Gender" value={employee.gender ? employee.gender.charAt(0).toUpperCase() + employee.gender.slice(1) : '-'} />

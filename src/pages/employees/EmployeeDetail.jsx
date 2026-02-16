@@ -328,6 +328,17 @@ const EmployeeDetail = ({
                 <p className='text-gray-500'>
                   {employee.office?.name || 'No office assigned'}
                 </p>
+                {(employee.cadre_type || employee.batch_no) && (
+                  <p className='text-gray-500 mt-1'>
+                    {employee.cadre_type && (
+                      <span>
+                        {employee.cadre_type === 'cadre' ? 'Cadre' : 'Non-Cadre'}
+                      </span>
+                    )}
+                    {employee.cadre_type && employee.batch_no && ' • '}
+                    {employee.batch_no && <span>Batch: {employee.batch_no}</span>}
+                  </p>
+                )}
                 <div className='flex items-center gap-2 mt-3'>
                   <Badge
                     variant={

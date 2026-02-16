@@ -115,20 +115,23 @@ const FileUpload = ({
   const renderPreview = () => {
     if (!value || !preview) return null;
 
-    const files = Array.isArray(value) ? value : [value];
+    const rawFiles = Array.isArray(value) ? value : [value];
+    const files = rawFiles.filter((f) => f != null);
+
+    if (files.length === 0) return null;
 
     return (
       <div className="mt-4 space-y-2">
         {files.map((file, index) => {
-          const fileName = typeof file === 'string' ? file.split('/').pop() : file.name;
-          const fileSize = typeof file === 'string' ? null : file.size;
+          const fileName = typeof file === 'string' ? file.split('/').pop() : file?.name ?? 'File';
+          const fileSize = typeof file === 'string' ? null : file?.size;
 
           return (
             <div
               key={index}
               className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
             >
-              {isImage(file) ? (
+              {isImage(file) && file ? (
                 <img
                   src={getPreviewUrl(file)}
                   alt={fileName}

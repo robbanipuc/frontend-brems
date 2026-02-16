@@ -43,6 +43,7 @@ import AcademicsTab from './tabs/AcademicsTab';
 import EmploymentTab from './tabs/EmploymentTab';
 import DocumentsTab from './tabs/DocumentsTab';
 import TimelineTab from './tabs/TimelineTab';
+import PunishmentsTab from './tabs/PunishmentsTab';
 import AccountTab from './tabs/AccountTab';
 
 // Modals
@@ -234,6 +235,17 @@ const EmployeeDetail = ({
       id: 'timeline',
       label: 'Timeline',
       content: <TimelineTab employee={employee} />,
+    },
+    {
+      id: 'punishments',
+      label: 'Punishments',
+      content: (
+        <PunishmentsTab
+          employee={employee}
+          canManage={canManage}
+          onAddSuccess={refreshEmployee}
+        />
+      ),
     },
     ...(canManage
       ? [

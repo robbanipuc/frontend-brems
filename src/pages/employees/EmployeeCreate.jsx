@@ -15,6 +15,7 @@ import {
   RELIGION_OPTIONS,
   BLOOD_GROUP_OPTIONS,
   MARITAL_STATUS_OPTIONS,
+  CADRE_OPTIONS,
 } from '@/utils/constants';
 import { getErrorMessage } from '@/utils/helpers';
 import toast from 'react-hot-toast';
@@ -42,6 +43,8 @@ const EmployeeCreate = () => {
     passport: '',
     birth_reg: '',
     joining_date: new Date().toISOString().split('T')[0],
+    cadre_type: '',
+    batch_no: '',
   });
   const [errors, setErrors] = useState({});
 
@@ -301,6 +304,21 @@ const EmployeeCreate = () => {
                   error={errors.office_id}
                   required
                   placeholder="Select office"
+                />
+                <Select
+                  label="Cadre / Non-cadre"
+                  name="cadre_type"
+                  value={formData.cadre_type}
+                  onChange={handleChange}
+                  options={CADRE_OPTIONS}
+                  placeholder="Select if applicable"
+                />
+                <Input
+                  label="Batch No. (if available)"
+                  name="batch_no"
+                  value={formData.batch_no}
+                  onChange={handleChange}
+                  placeholder="Enter batch number"
                 />
                 <DatePicker
                   label="Joining Date"

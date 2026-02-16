@@ -4,6 +4,7 @@ import {
   RELIGION_OPTIONS,
   BLOOD_GROUP_OPTIONS,
   MARITAL_STATUS_OPTIONS,
+  CADRE_OPTIONS,
 } from '@/utils/constants';
 
 const BasicInfoSection = ({ data, onChange, errors }) => {
@@ -112,6 +113,21 @@ const BasicInfoSection = ({ data, onChange, errors }) => {
             name="birth_reg"
             value={data.birth_reg}
             onChange={onChange}
+          />
+          <Select
+            label="Cadre / Non-cadre"
+            name="cadre_type"
+            value={data.cadre_type}
+            onChange={onChange}
+            options={CADRE_OPTIONS}
+            placeholder="Select if applicable"
+          />
+          <Input
+            label="Batch No. (if available)"
+            name="batch_no"
+            value={data.batch_no}
+            onChange={onChange}
+            placeholder="Enter batch number"
           />
         </div>
       </div>

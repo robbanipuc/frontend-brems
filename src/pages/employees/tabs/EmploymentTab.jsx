@@ -62,6 +62,16 @@ const EmploymentTab = ({ employee }) => {
           </h4>
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
+              <dt className="text-gray-500">Cadre / Non-cadre:</dt>
+              <dd className="text-gray-900">
+                {employee.cadre_type ? employee.cadre_type.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '-'}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Batch No.:</dt>
+              <dd className="text-gray-900">{employee.batch_no || '-'}</dd>
+            </div>
+            <div className="flex justify-between">
               <dt className="text-gray-500">Joining Date:</dt>
               <dd className="text-gray-900">{formatDate(employee.joining_date)}</dd>
             </div>

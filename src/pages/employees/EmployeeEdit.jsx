@@ -56,6 +56,8 @@ const EmployeeEdit = () => {
     height: '',
     passport: '',
     birth_reg: '',
+    cadre_type: '',
+    batch_no: '',
     family: {
       father: { name: '', name_bn: '', nid: '', dob: '', occupation: '', is_alive: true },
       mother: { name: '', name_bn: '', nid: '', dob: '', occupation: '', is_alive: true },
@@ -131,6 +133,8 @@ const EmployeeEdit = () => {
       height: emp.height || '',
       passport: emp.passport || '',
       birth_reg: emp.birth_reg || '',
+      cadre_type: emp.cadre_type || '',
+      batch_no: emp.batch_no || '',
     };
 
     const family = emp.family || [];

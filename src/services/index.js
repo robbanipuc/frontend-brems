@@ -10,3 +10,4 @@ export { default as profileRequestService } from './profileRequestService';
 export { default as formService } from './formService';
 export { default as reportService } from './reportService';
 export { default as fileService } from './fileService';
+export { default as punishmentService } from './punishmentService';

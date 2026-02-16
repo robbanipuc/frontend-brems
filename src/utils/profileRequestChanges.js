@@ -50,6 +50,8 @@ const PERSONAL_INFO_LABELS = {
   height: 'Height',
   passport: 'Passport',
   birth_reg: 'Birth registration',
+  cadre_type: 'Cadre / Non-cadre',
+  batch_no: 'Batch No.',
 };
 
 const ADDRESS_LABELS = {
@@ -187,16 +189,25 @@ function diffDocumentUpdate(proposed) {
 /**
  * Build rows for a flat object (e.g. personal_info)
  */
+function formatCadreValue(value) {
+  if (value == null || value === '') return '—';
+  if (value === 'cadre') return 'Cadre';
+  if (value === 'non_cadre') return 'Non-cadre';
+  return String(value);
+}
+
 function diffFlat(current, proposed, labels, options = {}) {
   const rows = [];
   const keys = new Set([
     ...Object.keys(current || {}),
     ...Object.keys(proposed || {}),
   ]);
-  const fmt = options.dateKeys
-    ? (v, k) =>
-        options.dateKeys.includes(k) ? formatDateValue(v) : formatValue(v)
-    : formatValue;
+  const valueFormatters = options.valueFormatters || {};
+  const fmt = (v, k) => {
+    if (valueFormatters[k]) return valueFormatters[k](v);
+    if (options.dateKeys && options.dateKeys.includes(k)) return formatDateValue(v);
+    return formatValue(v);
+  };
   keys.forEach((key) => {
     const prev = current?.[key];
     const next = proposed?.[key];
@@ -425,7 +436,7 @@ export function getProposedChangesSections(currentData, proposedChanges) {
       current.personal_info,
       proposed.personal_info,
       PERSONAL_INFO_LABELS,
-      { dateKeys: ['dob'] }
+      { dateKeys: ['dob'], valueFormatters: { cadre_type: formatCadreValue } }
     );
     if (personalRows.length) {
       sections.push({ title: 'Personal Information', rows: personalRows });
@@ -487,6 +498,7 @@ export function buildProposedChangesOnlyChanged(currentEmployee, formData) {
     },
     academics: (current.academics || []).map((a) => ({
       exam_name: a.exam_name,
+      board: a.board,
       institute: a.institute,
       passing_year: a.passing_year,
       result: a.result,
@@ -573,6 +585,7 @@ export function buildProposedChangesOnlyChanged(currentEmployee, formData) {
       const s = safe(a);
       return {
         exam_name: s.exam_name || '',
+        board: s.board || '',
         institute: s.institute || '',
         passing_year: s.passing_year || '',
         result: s.result || '',
@@ -582,6 +595,7 @@ export function buildProposedChangesOnlyChanged(currentEmployee, formData) {
       const s = safe(a);
       return {
         exam_name: s.exam_name || '',
+        board: s.board || '',
         institute: s.institute || '',
         passing_year: s.passing_year || '',
         result: s.result || '',
@@ -592,6 +606,7 @@ export function buildProposedChangesOnlyChanged(currentEmployee, formData) {
       const c = cur[i] || {};
       return (
         !isSame(c.exam_name, p.exam_name) ||
+        !isSame(c.board, p.board) ||
         !isSame(c.institute, p.institute) ||
         !isSame(c.passing_year, p.passing_year) ||
         !isSame(c.result, p.result)

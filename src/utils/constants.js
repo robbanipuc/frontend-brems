@@ -107,6 +107,24 @@ export const MARITAL_STATUS_OPTIONS = [
   { value: 'Widowed', label: 'Widowed' },
 ];
 
+// Cadre / Non-cadre Options
+export const CADRE_OPTIONS = [
+  { value: 'cadre', label: 'Cadre' },
+  { value: 'non_cadre', label: 'Non-cadre' },
+];
+
+// Punishment Types (Major & Minor Penalties)
+export const PUNISHMENT_TYPES = [
+  { value: 'dismissal', label: 'Dismissal (চাকরি থেকে বরখাস্তকরণ)', group: 'Major' },
+  { value: 'removal', label: 'Removal (অপসারণ)', group: 'Major' },
+  { value: 'reduction_to_lower_grade', label: 'Reduction to a lower grade (পদাবনতি)', group: 'Major' },
+  { value: 'compulsory_retirement', label: 'Compulsory Retirement (বাধ্যতামূলক অবসর)', group: 'Major' },
+  { value: 'censure', label: 'Censure (তিরস্কার)', group: 'Minor' },
+  { value: 'withholding_increment', label: 'Withholding of increment (বেতনবৃদ্ধি স্থগিতকরণ)', group: 'Minor' },
+  { value: 'withholding_promotion', label: 'Withholding of promotion (পদোন্নতি স্থগিতকরণ)', group: 'Minor' },
+  { value: 'recovery_from_pay', label: 'Recovery from pay (আর্থিক ক্ষতিপূরণ)', group: 'Minor' },
+];
+
 // Academic Exam Names
 export const EXAM_NAMES = [
   { value: 'SSC / Dakhil', label: 'SSC / Dakhil' },

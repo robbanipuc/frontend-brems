@@ -1,5 +1,5 @@
 // API Base URL: use VITE_API_URL from .env for local run (e.g. http://localhost:8000/api)
-export const API_BASE_URL = 'https://brems-backend.onrender.com/api';
+export const API_BASE_URL = 'http://localhost:8000/api';
 
 // Backend origin for storage URLs (avoids /storage/... hitting the SPA router and 404)
 export const STORAGE_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '');

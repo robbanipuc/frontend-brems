@@ -358,7 +358,7 @@ const EmployeeList = () => {
   return (
     <div>
       <PageHeader
-        title='Employees'
+        title='Employees in Railway'
         subtitle={`Total ${employees.length} employees`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
